@@ -5,28 +5,31 @@ namespace CentralGit.App.Services;
 public sealed record LocatedRepositories(string? Selected, IReadOnlyList<DiscoveredRepository> Discovered);
 
 /// <summary>
-/// Decides which repository to open on launch until Settings › Repositories is persisted:
-/// an explicit path, else the repository containing the current directory, else the most
-/// recently touched repository under the default scan folders.
+/// Finds repositories under the scan folders from Settings › Repositories, and decides which
+/// one to open on launch: an explicit path, else the repository containing the current
+/// directory, else the most recently opened one, else the most recently touched one.
 /// </summary>
 public static class RepositoryLocator
 {
-    public static IReadOnlyList<string> DefaultScanFolders { get; } =
-    [
-        @"D:\Source\Repos",
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "source", "repos"),
-    ];
+    public static IReadOnlyList<DiscoveredRepository> Discover(AppSettings settings, CancellationToken ct = default)
+    {
+        var options = settings.ToScanOptions();
+        return settings.ScanFolders
+            .SelectMany(root => RepositoryScanner.Scan(root, options, ct))
+            .DistinctBy(r => r.Path, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
 
     public static LocatedRepositories Locate(string? requestedPath)
     {
-        var discovered = DefaultScanFolders
-            .SelectMany(root => RepositoryScanner.Scan(root))
-            .DistinctBy(r => r.Path, StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        var settings = SettingsStore.Current;
+        var discovered = Discover(settings);
 
         var selected =
             FindEnclosingRepository(requestedPath)
             ?? FindEnclosingRepository(Environment.CurrentDirectory)
+            ?? settings.Recent.Select(r => r.Path).FirstOrDefault(IsRepository)
             ?? discovered
                 .Where(r => !r.IsWorktree)
                 .OrderByDescending(r => LastActivity(r.Path))
@@ -36,17 +39,17 @@ public static class RepositoryLocator
         return new LocatedRepositories(selected, discovered);
     }
 
-    private static string? FindEnclosingRepository(string? start)
+    public static bool IsRepository(string path) =>
+        Directory.Exists(Path.Combine(path, ".git")) || File.Exists(Path.Combine(path, ".git"));
+
+    public static string? FindEnclosingRepository(string? start)
     {
         if (string.IsNullOrWhiteSpace(start) || !Directory.Exists(start))
             return null;
 
         for (var dir = new DirectoryInfo(Path.GetFullPath(start)); dir is not null; dir = dir.Parent)
-        {
-            var dotGit = Path.Combine(dir.FullName, ".git");
-            if (Directory.Exists(dotGit) || File.Exists(dotGit))
+            if (IsRepository(dir.FullName))
                 return dir.FullName;
-        }
         return null;
     }
 

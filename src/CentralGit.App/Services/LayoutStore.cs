@@ -7,12 +7,11 @@ public sealed record RepositoryLayout(double HistoryRatio = 0.55, bool SplitDiff
 
 /// <summary>
 /// Remembers <see cref="RepositoryLayout"/> per repository in
-/// %LOCALAPPDATA%\CentralGit\layout.json. Failures are non-fatal: layout is a convenience.
+/// %APPDATA%\CentralGit\layout.json. Failures are non-fatal: layout is a convenience.
 /// </summary>
 public static class LayoutStore
 {
-    private static readonly string FilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CentralGit", "layout.json");
+    private static readonly string FilePath = AppPaths.File("layout.json");
 
     private static Dictionary<string, RepositoryLayout>? _cache;
 

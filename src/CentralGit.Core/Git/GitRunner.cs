@@ -38,11 +38,19 @@ public sealed class GitRunner(string gitExecutable = "git")
     public async Task<GitResult> RunAsync(
         string workingDirectory,
         IEnumerable<string> arguments,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? standardInput = null)
     {
         var args = arguments.ToArray();
-        using var process = Start(workingDirectory, args);
+        using var process = Start(workingDirectory, args, redirectInput: standardInput is not null);
         var stopwatch = Stopwatch.StartNew();
+
+        if (standardInput is not null)
+        {
+            // git credential & co. read until EOF.
+            await process.StandardInput.WriteAsync(standardInput.AsMemory(), cancellationToken).ConfigureAwait(false);
+            process.StandardInput.Close();
+        }
 
         var stdout = process.StandardOutput.ReadToEndAsync(cancellationToken);
         var stderr = process.StandardError.ReadToEndAsync(cancellationToken);
@@ -61,13 +69,63 @@ public sealed class GitRunner(string gitExecutable = "git")
             await stderr.ConfigureAwait(false), stopwatch.Elapsed);
     }
 
+    /// <summary>
+    /// Runs a long operation (fetch, pull, push) and reports each stderr progress line as it
+    /// appears. Git redraws progress with carriage returns, so both \r and \n end a line.
+    /// The full stderr is still returned in the result for diagnostics.
+    /// </summary>
+    public async Task<GitResult> RunWithProgressAsync(
+        string workingDirectory,
+        IEnumerable<string> arguments,
+        Action<string> onProgress,
+        CancellationToken cancellationToken = default)
+    {
+        var args = arguments.ToArray();
+        using var process = Start(workingDirectory, args);
+        var stopwatch = Stopwatch.StartNew();
+        using var registration = cancellationToken.Register(() => TryKill(process));
+
+        var stdout = process.StandardOutput.ReadToEndAsync(CancellationToken.None);
+        var all = new StringBuilder();
+        var line = new StringBuilder();
+        var buffer = new char[4096];
+        int read;
+        while ((read = await process.StandardError.ReadAsync(buffer, CancellationToken.None).ConfigureAwait(false)) > 0)
+        {
+            all.Append(buffer, 0, read);
+            for (var i = 0; i < read; i++)
+            {
+                if (buffer[i] is '\r' or '\n')
+                {
+                    if (line.Length > 0)
+                        onProgress(line.ToString());
+                    line.Clear();
+                }
+                else
+                {
+                    line.Append(buffer[i]);
+                }
+            }
+        }
+        if (line.Length > 0)
+            onProgress(line.ToString());
+
+        await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Keep only the final state of each \r-redrawn progress line, so the log reads cleanly.
+        var cleaned = string.Join('\n', all.ToString().Replace("\r\n", "\n").Split('\n').Select(l => l.Split('\r').LastOrDefault(s => s.Length > 0) ?? ""));
+        return new GitResult(args, process.ExitCode, await stdout.ConfigureAwait(false), cleaned, stopwatch.Elapsed);
+    }
+
     /// <summary>Runs git and throws <see cref="GitException"/> on a non-zero exit code.</summary>
     public async Task<string> RunCheckedAsync(
         string workingDirectory,
         IEnumerable<string> arguments,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? standardInput = null)
     {
-        var result = await RunAsync(workingDirectory, arguments, cancellationToken).ConfigureAwait(false);
+        var result = await RunAsync(workingDirectory, arguments, cancellationToken, standardInput).ConfigureAwait(false);
         return result.Succeeded ? result.StandardOutput : throw new GitException(result);
     }
 
@@ -113,11 +171,13 @@ public sealed class GitRunner(string gitExecutable = "git")
             throw new GitException(new GitResult(args, process.ExitCode, string.Empty, await stderr.ConfigureAwait(false), TimeSpan.Zero));
     }
 
-    private Process Start(string workingDirectory, string[] args)
+    private Process Start(string workingDirectory, string[] args, bool redirectInput = false)
     {
         var info = new ProcessStartInfo(GitExecutable)
         {
             WorkingDirectory = workingDirectory,
+            RedirectStandardInput = redirectInput,
+            StandardInputEncoding = redirectInput ? new UTF8Encoding(false) : null, // no BOM: git would read it as data
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
@@ -134,6 +194,8 @@ public sealed class GitRunner(string gitExecutable = "git")
         foreach (var arg in args)
             info.ArgumentList.Add(arg);
 
+        // Never block on a hidden terminal prompt. Git Credential Manager still shows its own
+        // sign-in window when a remote needs credentials (it only uses this for terminal prompts).
         info.Environment["GIT_TERMINAL_PROMPT"] = "0";
         info.Environment["GIT_OPTIONAL_LOCKS"] = "0"; // read-only status must not fight the user's own git
 

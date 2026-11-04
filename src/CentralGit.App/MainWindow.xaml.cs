@@ -16,8 +16,6 @@ namespace CentralGit.App;
 
 public sealed partial class MainWindow : Window
 {
-    private const double SidebarWidth = 232;
-    private const double DetailsWidth = 360;
     private const double SplitterHeight = 6;
     private const double InvestigateHistoryHeight = 44 + 24 + 5 * 26; // header, column header, five rows
     private const double MinPaneHeight = 120;
@@ -29,11 +27,32 @@ public sealed partial class MainWindow : Window
     private DispatcherQueueTimer? _transition;
 
     public ShellViewModel ViewModel { get; } = new();
+    public SwitcherViewModel Switcher { get; }
+    public SettingsViewModel Settings { get; }
 
     public MainWindow(string? requestedPath)
     {
         _requestedPath = requestedPath;
+        Switcher = new SwitcherViewModel(ViewModel);
+        Settings = new SettingsViewModel(ViewModel);
+        BranchPicker = new BranchPickerViewModel(ViewModel);
         InitializeComponent();
+
+        // Ctrl+P (switcher) and Ctrl+, (settings). Comma has no named VirtualKey, so these are added here.
+        Root.KeyboardAccelerators.Add(Accelerator(Windows.System.VirtualKey.P, (_, a) => { OpenSwitcher(); a.Handled = true; }));
+        Root.KeyboardAccelerators.Add(Accelerator((Windows.System.VirtualKey)188, (_, a) => { OpenSettings(SettingsSection.Repositories); a.Handled = true; }));
+        ViewModel.RepositoryOpened += () =>
+        {
+            if (ViewModel.RepositoryPath is { } p)
+                _historyRatio = LayoutStore.Get(p).HistoryRatio;
+            ApplyMode(animate: false);
+            DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusSelectedCommit);
+        };
+        InitializeOperations();
+        InitializeChanges();
+        InitializeBranches();
+        InitializeHealth();
+        InitializePanes();
 
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
@@ -189,9 +208,9 @@ public sealed partial class MainWindow : Window
 
     private (double History, double Sidebar, double Details) Targets() => ViewModel.Mode switch
     {
-        WorkspaceMode.Investigate => (Math.Min(InvestigateHistoryHeight, AvailableHeight - MinPaneHeight), SidebarWidth, DetailsWidth),
+        WorkspaceMode.Investigate => (Math.Min(InvestigateHistoryHeight, AvailableHeight - MinPaneHeight), _panes.Sidebar, _panes.Details),
         WorkspaceMode.Focus => (0, 0, 0),
-        _ => (Math.Clamp(_historyRatio * AvailableHeight, MinPaneHeight, Math.Max(MinPaneHeight, AvailableHeight - MinPaneHeight)), SidebarWidth, DetailsWidth),
+        _ => (Math.Clamp(_historyRatio * AvailableHeight, MinPaneHeight, Math.Max(MinPaneHeight, AvailableHeight - MinPaneHeight)), _panes.Sidebar, _panes.Details),
     };
 
     /// <summary>
@@ -206,6 +225,7 @@ public sealed partial class MainWindow : Window
         var focus = ViewModel.Mode == WorkspaceMode.Focus;
         SplitterRow.Height = new GridLength(focus ? 0 : SplitterHeight);
         HistorySplitter.Visibility = focus ? Visibility.Collapsed : Visibility.Visible;
+        UpdatePaneHandles(focus);
         FocusGlyph.Glyph = focus ? "" : ""; // BackToWindow / FullScreen
         UpdateFocusHeader();
 
@@ -293,6 +313,19 @@ public sealed partial class MainWindow : Window
 
     private void OnEscapeAccelerator(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
+        // Esc closes the innermost thing first: switcher, then settings, then steps back a mode.
+        if (SwitcherOverlay.Visibility == Visibility.Visible)
+        {
+            CloseSwitcher();
+            args.Handled = true;
+            return;
+        }
+        if (SettingsPage.Visibility == Visibility.Visible)
+        {
+            CloseSettings();
+            args.Handled = true;
+            return;
+        }
         if (ViewModel.Mode == WorkspaceMode.Browse)
             return;
         ViewModel.Mode = ViewModel.Mode == WorkspaceMode.Focus ? WorkspaceMode.Investigate : WorkspaceMode.Browse;

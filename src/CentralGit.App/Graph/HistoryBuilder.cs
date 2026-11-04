@@ -9,7 +9,7 @@ namespace CentralGit.App.Graph;
 /// the walk along the current branch's first-parent line all carry over from page to page, so
 /// the graph continues seamlessly when more history is loaded.
 /// </summary>
-public sealed class HistoryBuilder(string? headHash, string? headBranch)
+public sealed class HistoryBuilder(string? headHash, string? headBranch, SyncSets? sync = null)
 {
     private readonly GraphLayout _layout = new();
     private readonly GraphColorizer _colorizer = new();
@@ -35,7 +35,8 @@ public sealed class HistoryBuilder(string? headHash, string? headBranch)
             rows.Add(new CommitRowViewModel(
                 commit, graphRow.Lane, strokes, dot,
                 isHead: commit.Hash == _head,
-                refs: CommitRowViewModel.BuildRefs(commit, headBranch, dot)));
+                refs: CommitRowViewModel.BuildRefs(commit, headBranch, dot),
+                sync: (sync ?? SyncSets.Empty).Of(commit.Hash)));
         }
         Count += rows.Count;
         return rows;

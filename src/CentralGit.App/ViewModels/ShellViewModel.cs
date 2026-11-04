@@ -11,6 +11,8 @@ namespace CentralGit.App.ViewModels;
 /// <summary>Browse: history first. Investigate: a commit in depth with a band of history. Focus: the diff alone.</summary>
 public enum WorkspaceMode { Browse, Investigate, Focus }
 
+public enum AppPage { History, Changes, Health }
+
 public sealed partial class ShellViewModel : ObservableObject
 {
     private const int HistoryPageSize = 5000;
@@ -49,7 +51,13 @@ public sealed partial class ShellViewModel : ObservableObject
 
     public ShellViewModel()
     {
-        FetchCommand = new AsyncRelayCommand(FetchAsync, () => _repository is not null);
+        FetchCommand = new AsyncRelayCommand(FetchAsync, CanRunRemote);
+        InitializeOperations();
+        Changes = new ChangesViewModel(
+            () => _repository!.GetStatusAsync(),
+            ReloadAsync,
+            status => ChangedFiles = status.ChangedFileCount);
+        Changes.Committed += message => SetStatus(message, error: false);
     }
 
     public IAsyncRelayCommand FetchCommand { get; }
@@ -57,6 +65,38 @@ public sealed partial class ShellViewModel : ObservableObject
     public ObservableCollection<BranchItemViewModel> Branches { get; } = [];
 
     public InspectorViewModel Inspector { get; } = new();
+
+    public ChangesViewModel Changes { get; }
+
+    private AppPage _page = AppPage.History;
+
+    /// <summary>Which workspace page is showing.</summary>
+    public AppPage Page
+    {
+        get => _page;
+        set
+        {
+            if (!SetProperty(ref _page, value))
+                return;
+            OnPropertyChanged(nameof(ShowHistory));
+            OnPropertyChanged(nameof(ShowChanges));
+            OnPropertyChanged(nameof(ShowHealth));
+            if (value == AppPage.Changes)
+                _ = Changes.RefreshAsync();
+            else if (value == AppPage.Health)
+                _ = LoadHealthAsync();
+        }
+    }
+
+    /// <summary>The Changes page (working tree + composer). Setting false goes back to History.</summary>
+    public bool ShowChanges
+    {
+        get => _page == AppPage.Changes;
+        set => Page = value ? AppPage.Changes : AppPage.History;
+    }
+
+    public bool ShowHistory => _page == AppPage.History;
+    public bool ShowHealth => _page == AppPage.Health;
 
     public string? RepositoryPath => _repository?.Path;
 
@@ -116,7 +156,7 @@ public sealed partial class ShellViewModel : ObservableObject
     public int Behind
     {
         get => _behind;
-        private set { if (SetProperty(ref _behind, value)) OnPropertyChanged(nameof(BehindText)); }
+        private set { if (SetProperty(ref _behind, value)) { OnPropertyChanged(nameof(BehindText)); OnPropertyChanged(nameof(HasBehind)); OnPropertyChanged(nameof(BehindCountText)); } }
     }
 
     public int ChangedFiles
@@ -128,6 +168,8 @@ public sealed partial class ShellViewModel : ObservableObject
     public string AheadText => Ahead.ToString();
     public bool HasAhead => Ahead > 0;
     public string BehindText => Behind > 0 ? $"↓{Behind}" : "";
+    public bool HasBehind => Behind > 0;
+    public string BehindCountText => Behind.ToString();
     public bool HasChanges => ChangedFiles > 0;
     public string ChangedFilesText => ChangedFiles.ToString();
 
@@ -139,20 +181,93 @@ public sealed partial class ShellViewModel : ObservableObject
     public async Task InitializeAsync(string? requestedPath)
     {
         var located = await Task.Run(() => RepositoryLocator.Locate(requestedPath));
-        RepositoryHubText = $"{located.Discovered.Count} repositories found";
+        SetDiscovered(located.Discovered);
 
         if (located.Selected is null)
         {
-            SetStatus("No repository found. Start CentralGit with a path, e.g. CentralGit.exe D:\\Source\\Repos\\my-repo", error: true);
+            SetStatus("No repository found. Add a scan folder in Settings (Ctrl+,) or start CentralGit with a path.", error: true);
             return;
         }
 
-        _repository = new GitRepository(located.Selected);
+        await OpenRepositoryAsync(located.Selected);
+    }
+
+    // ─── Repositories ──────────────────────────────────────────────────────
+
+    private IReadOnlyList<Core.Repositories.DiscoveredRepository> _discovered = [];
+
+    /// <summary>Repositories under the scan folders (Settings › Repositories), hidden ones included.</summary>
+    public IReadOnlyList<Core.Repositories.DiscoveredRepository> Discovered
+    {
+        get => _discovered;
+        private set => SetProperty(ref _discovered, value);
+    }
+
+    /// <summary>Raised after another repository was opened, so the view can restore its layout.</summary>
+    public event Action? RepositoryOpened;
+
+    public async Task RescanAsync()
+    {
+        var settings = SettingsStore.Current;
+        SetDiscovered(await Task.Run(() => RepositoryLocator.Discover(settings)));
+    }
+
+    private void SetDiscovered(IReadOnlyList<Core.Repositories.DiscoveredRepository> found)
+    {
+        Discovered = found;
+        var hidden = found.Count(r => SettingsStore.Current.IsHidden(r.Path));
+        RepositoryHubText = hidden > 0 ? $"{found.Count} found · {hidden} hidden" : $"{found.Count} repositories found";
+    }
+
+    public async Task OpenRepositoryAsync(string path)
+    {
+        if (!RepositoryLocator.IsRepository(path))
+        {
+            SetStatus($"{path} is not a Git repository (no .git found).", error: true);
+            return;
+        }
+        if (_repository is { } current && string.Equals(current.Path, path, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        // Start clean: nothing from the previous repository may leak into this one.
+        _historyGeneration++;
+        _filterCts?.Cancel();
+        _filterText = "";
+        _filter = CommitFilter.Parse(null);
+        OnPropertyChanged(nameof(FilterText));
+        OnPropertyChanged(nameof(IsFiltered));
+        _back.Clear();
+        _forward.Clear();
+        _navigating = true;
+        try { SelectedCommit = null; }
+        finally { _navigating = false; }
+        _all = [];
+        _byHash.Clear();
+        Commits = _all;
+        Branches.Clear();
+        _localBranches = [];
+        _collapsedFolders.Clear();
+        _branchAssessments = new Dictionary<string, Core.Insights.BranchAssessment>();
+        Health.Clear();
+        Mode = WorkspaceMode.Browse;
+
+        _repository = new GitRepository(path);
         Inspector.Attach(_repository);
-        Inspector.IsSplit = LayoutStore.Get(_repository.Path).SplitDiff;
+        Changes.Attach(_repository);
+        Inspector.IsSplit = LayoutStore.Get(path).SplitDiff;
         RepositoryName = _repository.Name;
+        OnPropertyChanged(nameof(RepositoryPath));
+        _branch = null;
         FetchCommand.NotifyCanExecuteChanged();
+        PullCommand.NotifyCanExecuteChanged();
+        PushCommand.NotifyCanExecuteChanged();
+        SettingsStore.MarkOpened(path);
+        SetStatus($"Opening {_repository.Name}…", error: false);
+
         await ReloadAsync();
+        RepositoryOpened?.Invoke();
+        if (Page == AppPage.Health)
+            _ = LoadHealthAsync();
     }
 
     // ─── Selection & navigation ────────────────────────────────────────────
@@ -221,11 +336,13 @@ public sealed partial class ShellViewModel : ObservableObject
         {
             var statusTask = repo.GetStatusAsync();
             var branchesTask = repo.GetLocalBranchesAsync();
+            var assessTask = AssessLocalBranchesAsync(repo);
             var headTask = repo.GetHeadHashAsync();
 
             var status = await statusTask;
             var head = await headTask;
-            var builder = new HistoryBuilder(head, status.Branch.Head);
+            var sync = await repo.GetSyncSetsAsync(status.Branch.Upstream);
+            var builder = new HistoryBuilder(head, status.Branch.Head, sync);
             var (rows, more) = await Task.Run(async () =>
             {
                 var page = await repo.GetHistoryAsync(HistoryPageSize);
@@ -234,15 +351,19 @@ public sealed partial class ShellViewModel : ObservableObject
             if (generation != _historyGeneration)
                 return;
 
+            _branch = status.Branch;
             BranchName = status.Branch.Head ?? $"detached at {status.Branch.Oid?[..7]}";
             Ahead = status.Branch.Ahead;
             Behind = status.Branch.Behind;
             OnPropertyChanged(nameof(UpstreamSummary));
+            UpdateSyncBanner(status.Branch);
             ChangedFiles = status.ChangedFileCount;
+            Changes.Apply(status);
 
-            Branches.Clear();
-            foreach (var b in (await branchesTask).OrderByDescending(b => b.IsHead).ThenBy(b => b.Name, StringComparer.OrdinalIgnoreCase))
-                Branches.Add(new BranchItemViewModel(b));
+            _localBranches = await branchesTask;
+            _branchAssessments = await assessTask;
+            OnPropertyChanged(nameof(StaleBranchText));
+            RebuildBranchTree();
 
             var previous = SelectedCommit?.Commit.Hash;
             _builder = builder;
@@ -387,21 +508,157 @@ public sealed partial class ShellViewModel : ObservableObject
         CommitCountText = IsFiltered ? $"{_commits.Count:N0} of {total} commits" : $"{total} commits";
     }
 
-    private async Task FetchAsync()
+    // ─── Remote operations (Operations Center) ─────────────────────────────
+
+    private BranchStatus? _branch;
+    private DateTimeOffset _lastFetch = DateTimeOffset.Now;
+
+    public OperationsViewModel Operations { get; } = new();
+
+    /// <summary>Raised when a fix needs Settings › Accounts.</summary>
+    public event Action? AccountsRequested;
+
+    /// <summary>Asks the user to confirm a force push; the view shows the dialog.</summary>
+    public Func<string, Task<bool>>? ConfirmForcePush { get; set; }
+
+    public IAsyncRelayCommand PullCommand { get; private set; } = null!;
+    public IAsyncRelayCommand PushCommand { get; private set; } = null!;
+
+    private void InitializeOperations()
     {
-        if (_repository is not { } repo)
+        PullCommand = new AsyncRelayCommand(() => PullAsync(null), CanRunRemote);
+        PushCommand = new AsyncRelayCommand(() => PushAsync(force: false), CanRunRemote);
+        Operations.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName != nameof(OperationsViewModel.IsBusy))
+                return;
+            FetchCommand.NotifyCanExecuteChanged();
+            PullCommand.NotifyCanExecuteChanged();
+            PushCommand.NotifyCanExecuteChanged();
+        };
+    }
+
+    private bool CanRunRemote() => _repository is not null && Operations.IsIdle;
+
+    private Task FetchAsync() => FetchAsync(background: false);
+
+    public async Task FetchAsync(bool background)
+    {
+        if (_repository is not { } repo || Operations.IsBusy)
             return;
 
-        SetStatus("Fetching all remotes…", error: false);
-        var result = await repo.Git.RunAsync(repo.Path, ["fetch", "--all", "--prune"]);
-        if (!result.Succeeded)
+        var (result, op) = await Operations.RunAsync(repo.Git, repo.Path, "fetch", "Fetch all remotes", Core.Operations.RemoteOperations.Fetch(), background);
+        _lastFetch = DateTimeOffset.Now;
+        await FinishAsync(result, op, success: () => $"Fetched in {op.Duration} · {UpstreamSummary}");
+    }
+
+    /// <summary>
+    /// Pull. Unless the user configured pull.rebase / pull.ff themselves, start with a
+    /// fast-forward-only pull: it can never create a merge or rewrite anything. If the branches
+    /// diverged, the failure explains it and offers rebase or merge explicitly.
+    /// </summary>
+    public async Task PullAsync(Core.Operations.PullMode? mode)
+    {
+        if (_repository is not { } repo || Operations.IsBusy)
+            return;
+
+        IReadOnlyList<string> args;
+        if (mode is { } explicitMode)
+            args = Core.Operations.RemoteOperations.Pull(explicitMode);
+        else if (await repo.GetUserConfigAsync("pull.rebase") is not null || await repo.GetUserConfigAsync("pull.ff") is not null)
+            args = ["pull", "--progress"]; // respect the user's own pull configuration
+        else
+            args = Core.Operations.RemoteOperations.Pull(Core.Operations.PullMode.FastForwardOnly);
+
+        var target = _branch?.Upstream ?? "upstream";
+        var title = mode switch
         {
-            SetStatus($"Fetch failed — {FirstLine(result.StandardError)}", error: true);
+            Core.Operations.PullMode.Rebase => $"Pull {target} (rebase)",
+            Core.Operations.PullMode.Merge => $"Pull {target} (merge)",
+            _ => $"Pull {target}",
+        };
+        var (result, op) = await Operations.RunAsync(repo.Git, repo.Path, "pull", title, args);
+        await FinishAsync(result, op, success: () => $"Pulled in {op.Duration} · {UpstreamSummary}");
+    }
+
+    public async Task PushAsync(bool force)
+    {
+        if (_repository is not { } repo || Operations.IsBusy)
+            return;
+
+        if (_branch is not { Head: { } branch } status)
+        {
+            SetStatus("Can't push from a detached HEAD — check out a branch first.", error: true);
             return;
         }
 
+        var remotes = await repo.GetRemotesAsync();
+        if (status.Upstream is null && remotes.Count == 0)
+        {
+            SetStatus("This repository has no remote to push to.", error: true);
+            return;
+        }
+        var remote = remotes.Contains("origin") ? "origin" : remotes.FirstOrDefault() ?? "origin";
+        var target = status.Upstream ?? $"{remote}/{branch}";
+
+        if (force && (ConfirmForcePush is null || !await ConfirmForcePush(target)))
+            return;
+
+        var args = Core.Operations.RemoteOperations.Push(branch, status.Upstream is not null, remote, force);
+        var title = status.Upstream is null ? $"Publish {branch} → {target}" : force ? $"Force push {branch} → {target}" : $"Push {branch} → {target}";
+        var (result, op) = await Operations.RunAsync(repo.Git, repo.Path, "push", title, args);
+        await FinishAsync(result, op, success: () => $"Pushed {branch} to {target} in {op.Duration}");
+    }
+
+    /// <summary>A button from a failed operation's explanation.</summary>
+    public async Task RunActionAsync(OperationViewModel failed, OperationAction action)
+    {
+        switch (action.Kind)
+        {
+            case "pull": await PullAsync(null); break;
+            case "pull-rebase": await PullAsync(Core.Operations.PullMode.Rebase); break;
+            case "pull-merge": await PullAsync(Core.Operations.PullMode.Merge); break;
+            case "fetch": await FetchAsync(background: false); break;
+            case "publish": await PushAsync(force: false); break;
+            case "force-push": await PushAsync(force: true); break;
+            case "accounts": AccountsRequested?.Invoke(); break;
+            case "stash-switch" when failed.Target is { } target:
+                await StashAndSwitchAsync(target);
+                break;
+            case "force-delete" when failed.Target is { } branch:
+                await DeleteBranchAsync(branch, force: true);
+                break;
+            case "retry":
+                await (failed.Kind switch
+                {
+                    "push" => PushAsync(force: false),
+                    "pull" => PullAsync(null),
+                    _ => FetchAsync(background: false),
+                });
+                break;
+        }
+    }
+
+    private async Task FinishAsync(GitResult result, OperationViewModel op, Func<string> success)
+    {
+        // Pull and push change refs (and a failed pull may have changed some): always refresh.
         await ReloadAsync();
-        SetStatus($"Fetched all remotes in {result.Duration.TotalSeconds:0.0} s · {UpstreamSummary}", error: false);
+        if (op.State == OperationState.Succeeded)
+            SetStatus(success(), error: false);
+        else if (op.State == OperationState.Failed && !op.IsBackground)
+            SetStatus($"{op.Title} failed — {op.ExplanationTitle}. Click here for details.", error: true);
+        else if (op.State == OperationState.Cancelled)
+            SetStatus($"{op.Title} cancelled", error: false);
+    }
+
+    /// <summary>Called every minute by the view; fetches when background sync is due.</summary>
+    public async Task BackgroundTickAsync()
+    {
+        var minutes = SettingsStore.Current.BackgroundFetchMinutes;
+        if (minutes <= 0 || _repository is null || Operations.IsBusy)
+            return;
+        if (DateTimeOffset.Now - _lastFetch >= TimeSpan.FromMinutes(minutes))
+            await FetchAsync(background: true);
     }
 
     private void SetStatus(string text, bool error)

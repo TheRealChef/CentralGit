@@ -34,10 +34,31 @@ public sealed class DiffRowViewModel
     public string Sign { get; private init; } = "";
     public Color SignColor { get; private init; } = Palette.TextMuted;
 
-    public static IReadOnlyList<DiffRowViewModel> Build(IReadOnlyList<DiffRow> rows, bool split, SyntaxLanguage language) =>
+    /// <summary>Hunk headers only: which hunk, and what the Changes page offers for it.</summary>
+    public int HunkIndex { get; private init; } = -1;
+    public string HunkRange { get; private init; } = "";
+    public string HunkSection { get; private init; } = "";
+    public string HunkActionLabel { get; private init; } = "";
+    public bool HasHunkAction => HunkActionLabel.Length > 0;
+    public bool CanDiscardHunk { get; private init; }
+
+    public static IReadOnlyList<DiffRowViewModel> Build(
+        IReadOnlyList<DiffRow> rows, bool split, SyntaxLanguage language, HunkActions actions = HunkActions.None) =>
         rows.Select(r => r.Kind == DiffRowKind.Lines
                 ? split ? SplitRow(r, language) : UnifiedRow(r, language)
-                : new DiffRowViewModel(r.Kind, split, r.Text))
+                : new DiffRowViewModel(r.Kind, split, r.Text)
+                {
+                    HunkIndex = r.Hunk,
+                    HunkRange = r.Range,
+                    HunkSection = r.Section.Length > 0 ? "in " + r.Section : "",
+                    HunkActionLabel = r.Kind != DiffRowKind.HunkHeader ? "" : actions switch
+                    {
+                        HunkActions.Stage => "Stage hunk",
+                        HunkActions.Unstage => "Unstage hunk",
+                        _ => "",
+                    },
+                    CanDiscardHunk = r.Kind == DiffRowKind.HunkHeader && actions == HunkActions.Stage,
+                })
             .ToList();
 
     private static DiffRowViewModel SplitRow(DiffRow row, SyntaxLanguage language)
@@ -88,3 +109,6 @@ public sealed class DiffRowViewModel
 
     private static string Number(int? n) => n?.ToString(CultureInfo.InvariantCulture) ?? "";
 }
+
+/// <summary>What a hunk header offers: nothing (history), stage + discard (unstaged), unstage (staged).</summary>
+public enum HunkActions { None, Stage, Unstage }

@@ -7,6 +7,14 @@
          Literal colors here: theme dictionaries can't see StaticResources declared below. -->
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Dark">
+            <!-- Accent = violet ("you / primary"), so stock toggles, checkboxes and focus never show Windows blue. -->
+            <Color x:Key="SystemAccentColor">#FF9B83C9</Color>
+            <Color x:Key="SystemAccentColorLight1">#FFAB96D3</Color>
+            <Color x:Key="SystemAccentColorLight2">#FFB9A6DE</Color>
+            <Color x:Key="SystemAccentColorLight3">#FFCDBEEB</Color>
+            <Color x:Key="SystemAccentColorDark1">#FF8670B4</Color>
+            <Color x:Key="SystemAccentColorDark2">#FF6F5C99</Color>
+            <Color x:Key="SystemAccentColorDark3">#FF58497C</Color>
             <SolidColorBrush x:Key="ButtonBackground" Color="Transparent" />
             <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#FF2A2E35" />
             <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#FF363B43" />
@@ -82,6 +90,7 @@
     <SolidColorBrush x:Key="OrangeTintBrush" Color="#1FD98A57" />
     <SolidColorBrush x:Key="GreenTextBrush" Color="{StaticResource GreenTextColor}" />
     <SolidColorBrush x:Key="RedTextBrush" Color="{StaticResource RedTextColor}" />
+    <SolidColorBrush x:Key="TealBrush" Color="{StaticResource TealColor}" />
 
     <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas</FontFamily>
 
@@ -146,6 +155,51 @@
         </Setter>
     </Style>
 
+    <!-- The one filled button on a page (Commit): violet = primary. Dims as a whole when disabled. -->
+    <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource VioletBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource DeepBrush}" />
+        <Setter Property="Height" Value="34" />
+        <Setter Property="Padding" Value="14,0" />
+        <Setter Property="CornerRadius" Value="7" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="UseSystemFocusVisuals" Value="True" />
+        <Setter Property="FocusVisualMargin" Value="-2" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid x:Name="Root" Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}">
+                        <Border x:Name="Overlay" Background="White" Opacity="0" CornerRadius="{TemplateBinding CornerRadius}" />
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Padding="{TemplateBinding Padding}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          AutomationProperties.AccessibilityView="Raw" />
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters><Setter Target="Overlay.Opacity" Value="0.12" /></VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters><Setter Target="Overlay.Opacity" Value="0.20" /></VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <VisualState.Setters><Setter Target="Root.Opacity" Value="0.35" /></VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style x:Key="NavButtonStyle" TargetType="Button" BasedOn="{StaticResource GhostButtonStyle}">
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -172,17 +226,55 @@
     </Style>
 
     <Style x:Key="FileItemStyle" TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
-        <Setter Property="MinHeight" Value="28" />
-        <Setter Property="Height" Value="28" />
+        <Setter Property="MinHeight" Value="30" />
+        <Setter Property="Height" Value="30" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="Margin" Value="6,0" />
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     </Style>
 
+    <!-- Sidebar branch tree: flush rows (the row draws its own HEAD tint and indent). -->
+    <Style x:Key="BranchItemStyle" TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
+        <Setter Property="MinHeight" Value="28" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+
+    <Style x:Key="SwitcherItemStyle" TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
+        <Setter Property="MinHeight" Value="44" />
+        <Setter Property="Height" Value="44" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="6,0" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+
+    <Style x:Key="CardStyle" TargetType="Border">
+        <Setter Property="Background" Value="#FF23262C" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="20,16" />
+    </Style>
+
+    <Style x:Key="CardTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="#FFEDEBE8" />
+    </Style>
+
+    <Style x:Key="CardHintStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="#FF8B929D" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Margin" Value="0,2,0,0" />
+    </Style>
+
     <Style x:Key="LineNumberStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="Cascadia Mono, Consolas" />
-        <Setter Property="FontSize" Value="11.5" />
+        <Setter Property="FontSize" Value="12" />
         <Setter Property="Foreground" Value="#FF6F7682" />
         <Setter Property="HorizontalAlignment" Value="Right" />
         <Setter Property="VerticalAlignment" Value="Center" />
@@ -191,7 +283,7 @@
 
     <Style x:Key="CodeStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="Cascadia Mono, Consolas" />
-        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontSize" Value="12.5" />
         <Setter Property="Foreground" Value="#FFD9D6D0" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Padding" Value="10,0,8,0" />
