@@ -22,11 +22,13 @@ public static class CommitLog
 
     internal const string Format = "%H%x1f%P%x1f%an%x1f%ae%x1f%at%x1f%cn%x1f%ce%x1f%ct%x1f%D%x1f%s%x1e";
 
-    public static IReadOnlyList<string> Arguments(int maxCount, bool allRefs = true)
+    public static IReadOnlyList<string> Arguments(int maxCount, bool allRefs = true, int skip = 0)
     {
         var args = new List<string> { "log", "--topo-order", "--decorate=full", $"--format={Format}" };
         if (maxCount > 0)
             args.Add($"--max-count={maxCount}");
+        if (skip > 0)
+            args.Add($"--skip={skip}");
         if (allRefs)
             args.Add("--all");
         return args;
@@ -36,9 +38,10 @@ public static class CommitLog
         GitRunner git,
         string repositoryPath,
         int maxCount = 0,
+        int skip = 0,
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        await foreach (var record in git.StreamRecordsAsync(repositoryPath, Arguments(maxCount), RecordSeparator, cancellationToken))
+        await foreach (var record in git.StreamRecordsAsync(repositoryPath, Arguments(maxCount, skip: skip), RecordSeparator, cancellationToken))
         {
             var commit = Parse(record);
             if (commit is not null)

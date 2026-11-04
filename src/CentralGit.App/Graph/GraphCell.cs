@@ -35,6 +35,11 @@ public sealed partial class GraphCell : Canvas
     {
         Height = RowHeight;
         IsHitTestVisible = false;
+        // Wide graphs (many parallel lanes) must never draw over the description column.
+        SizeChanged += (_, e) => Clip = new Microsoft.UI.Xaml.Media.RectangleGeometry
+        {
+            Rect = new Windows.Foundation.Rect(0, 0, e.NewSize.Width, e.NewSize.Height),
+        };
     }
 
     private static double X(int lane) => Inset + lane * LaneWidth;

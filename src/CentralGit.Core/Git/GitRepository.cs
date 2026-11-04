@@ -14,12 +14,19 @@ public sealed class GitRepository(string path, GitRunner? git = null)
     public async Task<WorkingTreeStatus> GetStatusAsync(CancellationToken ct = default) =>
         WorkingTreeStatus.Parse(await _git.RunCheckedAsync(Path, WorkingTreeStatus.Arguments, ct).ConfigureAwait(false));
 
-    public async Task<IReadOnlyList<CommitInfo>> GetHistoryAsync(int maxCount, CancellationToken ct = default)
+    public async Task<IReadOnlyList<CommitInfo>> GetHistoryAsync(int maxCount, int skip = 0, CancellationToken ct = default)
     {
         var commits = new List<CommitInfo>(Math.Max(maxCount, 0));
-        await foreach (var commit in CommitLog.ReadAsync(_git, Path, maxCount, ct).ConfigureAwait(false))
+        await foreach (var commit in CommitLog.ReadAsync(_git, Path, maxCount, skip, ct).ConfigureAwait(false))
             commits.Add(commit);
         return commits;
+    }
+
+    /// <summary>Hashes of commits (any ref) that touch <paramref name="pathSpec"/>, for the path filter.</summary>
+    public async Task<IReadOnlySet<string>> GetCommitsTouchingAsync(string pathSpec, CancellationToken ct = default)
+    {
+        var output = await _git.RunCheckedAsync(Path, ["log", "--all", "--format=%H", "--", pathSpec], ct).ConfigureAwait(false);
+        return output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToHashSet(StringComparer.Ordinal);
     }
 
     public async Task<string?> GetHeadHashAsync(CancellationToken ct = default)

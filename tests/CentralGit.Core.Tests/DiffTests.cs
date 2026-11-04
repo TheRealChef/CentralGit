@@ -164,6 +164,12 @@ public class DiffTests
             var lines = Assert.Single(diff.Hunks).Lines;
             Assert.Contains(lines, l => l is { Kind: DiffLineKind.Added, Text: "TWO", NewNumber: 2 });
 
+            var repository = new GitRepository(dir, git);
+            Assert.Equal(2, (await repository.GetCommitsTouchingAsync("a.txt")).Count);
+            Assert.Empty(await repository.GetCommitsTouchingAsync("missing/file.txt"));
+            var page2 = await repository.GetHistoryAsync(maxCount: 1, skip: 1);
+            Assert.Equal("Root", Assert.Single(page2).Subject);
+
             var root = await CommitDetails.LoadAsync(git, dir, details.Parents[0]);
             Assert.Empty(root.Parents);
             Assert.Equal(ChangeKind.Added, Assert.Single(root.Files).Kind);

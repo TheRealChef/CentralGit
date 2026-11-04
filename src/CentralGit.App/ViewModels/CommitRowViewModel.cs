@@ -23,6 +23,11 @@ public sealed class CommitRowViewModel(
     public bool IsHead { get; } = isHead;
     public IReadOnlyList<RefChipViewModel> Refs { get; } = refs;
 
+    private CommitRowViewModel? _flat;
+
+    /// <summary>The same row without graph lines, for filtered views where lanes would have gaps.</summary>
+    public CommitRowViewModel Flat() => _flat ??= new CommitRowViewModel(Commit, 0, [], DotColor, IsHead, Refs);
+
     public bool IsMerge => Commit.IsMerge;
     public string Subject => Commit.Subject;
     public string Author => Commit.Author.Name;

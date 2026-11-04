@@ -15,6 +15,8 @@
             <KeyboardAccelerator Key="Escape" Invoked="OnEscapeAccelerator" />
             <KeyboardAccelerator Key="Down" Modifiers="Menu" Invoked="OnNextChangeAccelerator" />
             <KeyboardAccelerator Key="Up" Modifiers="Menu" Invoked="OnPreviousChangeAccelerator" />
+            <KeyboardAccelerator Key="Left" Modifiers="Menu" Invoked="OnBackAccelerator" />
+            <KeyboardAccelerator Key="Right" Modifiers="Menu" Invoked="OnForwardAccelerator" />
         </Grid.KeyboardAccelerators>
         <Grid.Resources>
             <diff:DiffTemplateSelector x:Key="DiffRowSelector">
@@ -275,6 +277,9 @@
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="12" Padding="16,0,12,0">
                     <TextBlock Text="History" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" />
                     <TextBox x:Name="FilterBox" Width="300" Height="28" CornerRadius="6" FontSize="12" VerticalAlignment="Center"
+                             Text="{x:Bind ViewModel.FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             KeyDown="OnFilterKeyDown"
+                             ToolTipService.ToolTip="Text matches message, author, hash or ref · author:name · path:src/file.cs (or any path with a slash)"
                              PlaceholderText="Filter by message, hash, author or path   (Ctrl+F)" AutomationProperties.Name="Filter commits" />
                     <TextBlock Text="{x:Bind ViewModel.CommitCountText, Mode=OneWay}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
                 </StackPanel>

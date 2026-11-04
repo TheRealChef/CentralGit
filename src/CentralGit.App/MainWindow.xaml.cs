@@ -91,7 +91,60 @@ public sealed partial class MainWindow : Window
 
         AppTitleBar.SizeChanged += (_, _) => UpdateTitleBarRegions();
         Activated += OnActivated;
+        HistoryList.Loaded += (_, _) => HookHistoryScrolling();
         UpdateDiffToggle();
+    }
+
+    /// <summary>Loads the next page of history when the list is scrolled near its end.</summary>
+    private void HookHistoryScrolling()
+    {
+        if (FindDescendant<ScrollViewer>(HistoryList) is not { } scroller)
+            return;
+        scroller.ViewChanged += async (_, _) =>
+        {
+            if (scroller.ScrollableHeight - scroller.VerticalOffset < 40 * 26)
+                await ViewModel.LoadMoreHistoryAsync();
+        };
+    }
+
+    private static T? FindDescendant<T>(DependencyObject root) where T : DependencyObject
+    {
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            if (child is T match)
+                return match;
+            if (FindDescendant<T>(child) is { } deeper)
+                return deeper;
+        }
+        return null;
+    }
+
+    private void OnBackAccelerator(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        ViewModel.GoBack();
+        args.Handled = true;
+    }
+
+    private void OnForwardAccelerator(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        ViewModel.GoForward();
+        args.Handled = true;
+    }
+
+    private void OnFilterKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case Windows.System.VirtualKey.Escape when ViewModel.FilterText.Length > 0:
+                ViewModel.FilterText = "";
+                e.Handled = true;
+                break;
+            case Windows.System.VirtualKey.Enter or Windows.System.VirtualKey.Down:
+                FocusSelectedCommit(); // from the filter straight into the results
+                e.Handled = true;
+                break;
+        }
     }
 
     /// <summary>Designed at 1600x1000, but never larger than 92% of the monitor's work area; centered.</summary>
