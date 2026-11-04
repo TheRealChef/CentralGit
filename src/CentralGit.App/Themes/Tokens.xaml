@@ -1,0 +1,163 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Lightweight styling of built-in controls. Must live in ThemeDictionaries,
+         otherwise the controls' own theme brushes win the ThemeResource lookup.
+         Literal colors here: theme dictionaries can't see StaticResources declared below. -->
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="ButtonBackground" Color="Transparent" />
+            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="#FF2A2E35" />
+            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="#FF363B43" />
+            <SolidColorBrush x:Key="ButtonBackgroundDisabled" Color="Transparent" />
+            <SolidColorBrush x:Key="ButtonBorderBrush" Color="Transparent" />
+            <SolidColorBrush x:Key="ButtonBorderBrushPointerOver" Color="Transparent" />
+            <SolidColorBrush x:Key="ButtonBorderBrushPressed" Color="Transparent" />
+            <SolidColorBrush x:Key="ButtonBorderBrushDisabled" Color="Transparent" />
+            <SolidColorBrush x:Key="ButtonForeground" Color="#FFADB1B9" />
+            <SolidColorBrush x:Key="ButtonForegroundPointerOver" Color="#FFEDEBE8" />
+            <SolidColorBrush x:Key="ButtonForegroundPressed" Color="#FFEDEBE8" />
+            <SolidColorBrush x:Key="ButtonForegroundDisabled" Color="#FF5A606B" />
+
+            <SolidColorBrush x:Key="ListViewItemBackgroundPointerOver" Color="#0FFFFFFF" />
+            <SolidColorBrush x:Key="ListViewItemBackgroundSelected" Color="#2B9B83C9" />
+            <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" Color="#369B83C9" />
+            <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" Color="#409B83C9" />
+            <SolidColorBrush x:Key="ListViewItemSelectionIndicatorBrush" Color="#FF9B83C9" />
+
+            <SolidColorBrush x:Key="TextControlBackground" Color="#FF1D2025" />
+            <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#FF1D2025" />
+            <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#FF1D2025" />
+            <SolidColorBrush x:Key="TextControlBorderBrush" Color="#FF2E3239" />
+            <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#FF3A3F47" />
+            <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#FF9B83C9" />
+            <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#FF8B929D" />
+            <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#FF8B929D" />
+            <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#FF8B929D" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+
+    <!-- Surfaces: hierarchy comes from tone, not borders (see design/Foundations). -->
+    <Color x:Key="DeepColor">#FF17191D</Color>
+    <Color x:Key="WindowColor">#FF1D2025</Color>
+    <Color x:Key="SurfaceColor">#FF23262C</Color>
+    <Color x:Key="RaisedColor">#FF2A2E35</Color>
+    <Color x:Key="ElevatedColor">#FF363B43</Color>
+    <Color x:Key="HoverColor">#FF404650</Color>
+    <Color x:Key="SeamColor">#FF101114</Color>
+    <Color x:Key="DividerColor">#FF2B2F36</Color>
+    <Color x:Key="CodeColor">#FF202328</Color>
+
+    <Color x:Key="TextPrimaryColor">#FFEDEBE8</Color>
+    <Color x:Key="TextSecondaryColor">#FFADB1B9</Color>
+    <Color x:Key="TextMutedColor">#FF8B929D</Color>
+
+    <!-- Accents: each one means one thing. -->
+    <Color x:Key="VioletColor">#FF9B83C9</Color>      <!-- you: HEAD, selection, outgoing, primary -->
+    <Color x:Key="VioletTextColor">#FFCDBEEB</Color>
+    <Color x:Key="OrangeColor">#FFD98A57</Color>      <!-- attention: incoming, uncommitted, paused -->
+    <Color x:Key="OrangeTextColor">#FFE2A57E</Color>
+    <Color x:Key="GreenColor">#FF78AD91</Color>       <!-- settled: success, additions, verified -->
+    <Color x:Key="GreenTextColor">#FF8FC0A6</Color>
+    <Color x:Key="TealColor">#FF78A6A5</Color>        <!-- trunk & activity -->
+    <Color x:Key="RedColor">#FFD46F6A</Color>         <!-- failure & destructive -->
+    <Color x:Key="RedTextColor">#FFDE8C87</Color>
+    <Color x:Key="InfoColor">#FF8EA3BF</Color>
+
+    <SolidColorBrush x:Key="DeepBrush" Color="{StaticResource DeepColor}" />
+    <SolidColorBrush x:Key="WindowBrush" Color="{StaticResource WindowColor}" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+    <SolidColorBrush x:Key="RaisedBrush" Color="{StaticResource RaisedColor}" />
+    <SolidColorBrush x:Key="ElevatedBrush" Color="{StaticResource ElevatedColor}" />
+    <SolidColorBrush x:Key="SeamBrush" Color="{StaticResource SeamColor}" />
+    <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerColor}" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}" />
+    <SolidColorBrush x:Key="VioletBrush" Color="{StaticResource VioletColor}" />
+    <SolidColorBrush x:Key="VioletTextBrush" Color="{StaticResource VioletTextColor}" />
+    <SolidColorBrush x:Key="VioletTintBrush" Color="#2B9B83C9" />
+    <SolidColorBrush x:Key="OrangeTextBrush" Color="{StaticResource OrangeTextColor}" />
+    <SolidColorBrush x:Key="OrangeTintBrush" Color="#1FD98A57" />
+    <SolidColorBrush x:Key="GreenTextBrush" Color="{StaticResource GreenTextColor}" />
+    <SolidColorBrush x:Key="RedTextBrush" Color="{StaticResource RedTextColor}" />
+
+    <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas</FontFamily>
+
+    <Style x:Key="SectionLabelStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="CharacterSpacing" Value="60" />
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+    </Style>
+
+    <!-- Own template: hover/press is a translucent overlay, so it works on any background
+         (including the raised "selected" nav item) and doesn't depend on SDK brush keys. -->
+    <Style x:Key="GhostButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="FontSize" Value="12.5" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="UseSystemFocusVisuals" Value="True" />
+        <Setter Property="FocusVisualMargin" Value="-2" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid Background="{TemplateBinding Background}" CornerRadius="{TemplateBinding CornerRadius}">
+                        <Border x:Name="Overlay" Background="White" Opacity="0" CornerRadius="{TemplateBinding CornerRadius}" />
+                        <ContentPresenter x:Name="Presenter"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Padding="{TemplateBinding Padding}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          AutomationProperties.AccessibilityView="Raw" />
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="Overlay.Opacity" Value="0.06" />
+                                        <Setter Target="Presenter.Foreground" Value="#FFEDEBE8" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="Overlay.Opacity" Value="0.10" />
+                                        <Setter Target="Presenter.Foreground" Value="#FFEDEBE8" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="Presenter.Opacity" Value="0.45" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="NavButtonStyle" TargetType="Button" BasedOn="{StaticResource GhostButtonStyle}">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="FontSize" Value="13" />
+    </Style>
+
+    <Style x:Key="CommitItemStyle" TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
+        <Setter Property="MinHeight" Value="26" />
+        <Setter Property="Height" Value="26" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+</ResourceDictionary>

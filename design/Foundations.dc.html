@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CentralGit — Visual language</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#101114}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:default}
+input{font:inherit;color:inherit}
+input::placeholder{color:#8B929D}
+a{color:#B9A6DE}a:hover{color:#D3C6EE}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1100px; box-sizing: border-box; padding: 40px 48px; background: #17191D; color: #EDEBE8; font-family: 'Segoe UI Variable Text', 'Segoe UI', Inter, system-ui, sans-serif; font-size: 13px; display: flex; flex-direction: column; gap: 28px; overflow: hidden">
+
+  <div style="display: flex; align-items: center; gap: 14px">
+    <div aria-hidden="true" style="width: 36px; height: 36px; border-radius: 9px; background: #2A2E35; display: flex; align-items: center; justify-content: center">
+      <svg width="22" height="22" viewBox="0 0 14 14" fill="none"><path d="M4 2.5v9M4 8.5c0-3 6-2 6-5" stroke="#9B83C9" stroke-width="1.5" stroke-linecap="round"></path><circle cx="10" cy="3.5" r="1.8" fill="#D98A57"></circle><circle cx="4" cy="11.5" r="1.8" fill="#9B83C9"></circle></svg>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <h1 style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em">CentralGit</h1>
+      <span style="font-size: 12.5px; color: #8B929D">Visual language · dark theme · v0.1</span>
+    </div>
+  </div>
+
+  <div style="flex: 1; min-height: 0; display: grid; grid-template-columns: 470px 470px minmax(0, 1fr); gap: 40px">
+
+    <!-- ═══ Column A: surfaces, text, accents ═══ -->
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8B929D">SURFACES — HIERARCHY COMES FROM TONE, NOT BORDERS</h2>
+      <div style="background: #17191D; border: 1px solid #2B2F36; border-radius: 10px; padding: 12px">
+        <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #8B929D; margin-bottom: 8px"><span>deep · title &amp; status bar</span><span style="font-family: 'JetBrains Mono', Consolas, monospace">#17191D</span></div>
+        <div style="background: #1D2025; border-radius: 8px; padding: 12px">
+          <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #8B929D; margin-bottom: 8px"><span>window · sidebar</span><span style="font-family: 'JetBrains Mono', Consolas, monospace">#1D2025</span></div>
+          <div style="background: #23262C; border-radius: 7px; padding: 12px">
+            <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #8B929D; margin-bottom: 8px"><span>surface · history, inspector</span><span style="font-family: 'JetBrains Mono', Consolas, monospace">#23262C</span></div>
+            <div style="background: #2A2E35; border-radius: 6px; padding: 12px">
+              <div style="display: flex; justify-content: space-between; font-size: 11.5px; color: #ADB1B9; margin-bottom: 8px"><span>raised · inputs, selected nav</span><span style="font-family: 'JetBrains Mono', Consolas, monospace">#2A2E35</span></div>
+              <div style="background: #363B43; border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; font-size: 11.5px; color: #CDD0D6; box-shadow: 0 8px 24px rgba(0,0,0,0.35)">
+                <span>elevated · popovers, active segment</span><span style="font-family: 'JetBrains Mono', Consolas, monospace">#363B43</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 10px; font-size: 11.5px; color: #8B929D">
+          <span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 14px; border-radius: 3px; background: #101114; border: 1px solid #2B2F36"></span>seam #101114</span>
+          <span style="display: flex; align-items: center; gap: 6px; margin-left: 10px"><span style="width: 14px; height: 14px; border-radius: 3px; background: #202328"></span>code #202328</span>
+          <span style="display: flex; align-items: center; gap: 6px; margin-left: 10px"><span style="width: 14px; height: 14px; border-radius: 3px; background: #404650"></span>hover #404650</span>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <div style="padding: 10px 12px; border-radius: 8px; background: #23262C"><div style="font-size: 15px; color: #EDEBE8">Primary</div><div style="font-size: 11px; color: #8B929D; font-family: 'JetBrains Mono', Consolas, monospace; margin-top: 2px">#EDEBE8 · 14.2:1</div></div>
+        <div style="padding: 10px 12px; border-radius: 8px; background: #23262C"><div style="font-size: 15px; color: #ADB1B9">Secondary</div><div style="font-size: 11px; color: #8B929D; font-family: 'JetBrains Mono', Consolas, monospace; margin-top: 2px">#ADB1B9 · 7.6:1</div></div>
+        <div style="padding: 10px 12px; border-radius: 8px; background: #23262C"><div style="font-size: 15px; color: #8B929D">Muted</div><div style="font-size: 11px; color: #8B929D; font-family: 'JetBrains Mono', Consolas, monospace; margin-top: 2px">#8B929D · 4.8:1</div></div>
+      </div>
+
+      <h2 style="margin: 10px 0 0; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8B929D">ACCENTS — EACH ONE MEANS ONE THING</h2>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <sc-for list="{{accents}}" as="ac" hint-placeholder-count="6">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 8px; background: #1D2025">
+            <span style="display: flex; flex: none">
+              <span style="width: 22px; height: 30px; border-radius: 5px 0 0 5px; background: {{ac.c}}"></span>
+              <span style="width: 22px; height: 30px; background: {{ac.tint}}; display: flex; align-items: center; justify-content: center; color: {{ac.text}}; font-size: 11px; font-weight: 600">Aa</span>
+              <span style="width: 22px; height: 30px; border-radius: 0 5px 5px 0; background: {{ac.text}}"></span>
+            </span>
+            <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+              <span style="font-size: 12.5px; font-weight: 600">{{ac.name}} <span style="font-weight: 400; color: #8B929D; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 11px">{{ac.c}}</span></span>
+              <span style="font-size: 12px; color: #ADB1B9">{{ac.role}}</span>
+            </span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- ═══ Column B: type, refs, graph, diff ═══ -->
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8B929D">TYPE — SEGOE UI VARIABLE · JETBRAINS MONO</h2>
+      <div style="display: flex; flex-direction: column; gap: 0; border-radius: 10px; background: #23262C; padding: 4px 16px">
+        <div style="display: flex; align-items: baseline; gap: 16px; padding: 10px 0; border-bottom: 1px solid #2B2F36"><span style="width: 74px; flex: none; font-size: 11px; color: #8B929D">15 · 600</span><span style="font-size: 15px; font-weight: 600">Group invoice line items by tax rate</span></div>
+        <div style="display: flex; align-items: baseline; gap: 16px; padding: 10px 0; border-bottom: 1px solid #2B2F36"><span style="width: 74px; flex: none; font-size: 11px; color: #8B929D">13 · 400</span><span style="font-size: 13px">Merge pull request #412 from fix/vat-rounding</span></div>
+        <div style="display: flex; align-items: baseline; gap: 16px; padding: 10px 0; border-bottom: 1px solid #2B2F36"><span style="width: 74px; flex: none; font-size: 11px; color: #8B929D">12 · 400</span><span style="font-size: 12px; color: #ADB1B9">Mara Lindqvist · Yesterday 15:10 · 6 files</span></div>
+        <div style="display: flex; align-items: baseline; gap: 16px; padding: 10px 0; border-bottom: 1px solid #2B2F36"><span style="width: 74px; flex: none; font-size: 11px; color: #8B929D">11 · 600</span><span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; color: #8B929D">BRANCHES</span></div>
+        <div style="display: flex; align-items: baseline; gap: 16px; padding: 10px 0"><span style="width: 74px; flex: none; font-size: 11px; color: #8B929D">Mono 12</span><span style="font-size: 12px; font-family: 'JetBrains Mono', 'Cascadia Mono', Consolas, monospace; color: #C9CDD4">7c2d0b4 <span style="color: #9DAFC7">@@ -42,15 +42,24 @@</span> <span style="color: #B79CE3">var</span> net</span></div>
+      </div>
+
+      <h2 style="margin: 10px 0 0; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8B929D">REFERENCES &amp; COUNTS</h2>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 14px 16px; border-radius: 10px; background: #23262C">
+        <span style="display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px; border-radius: 4px; font-size: 11.5px; font-weight: 600; border: 1px solid rgba(155,131,201,0.6); color: #E2D8F5; background: rgba(155,131,201,0.26)"><span style="width: 6px; height: 6px; border-radius: 50%; background: #9B83C9"></span>HEAD branch</span>
+        <span style="display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px; border-radius: 4px; font-size: 11.5px; border: 1px solid rgba(120,166,165,0.32); color: #E0E2E6; background: rgba(120,166,165,0.14)"><span style="width: 6px; height: 6px; border-radius: 50%; background: #78A6A5"></span>local</span>
+        <span style="display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px; border-radius: 4px; font-size: 11.5px; border: 1px solid rgba(120,166,165,0.4); color: #ADB1B9"><span style="width: 6px; height: 6px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid #78A6A5"></span>origin/remote</span>
+        <span style="display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px; border-radius: 4px; font-size: 11.5px; border: 1px solid rgba(255,255,255,0.08); color: #D2C8B3; background: rgba(255,255,255,0.04)"><span style="width: 6px; height: 6px; border-radius: 1px; background: #B8A887; transform: rotate(45deg)"></span>v2.8.1</span>
+        <span style="font-size: 12px; color: #B9A6DE; margin-left: 6px">↑1 outgoing</span>
+        <span style="font-size: 12px; color: #E2A57E">↓4 incoming</span>
+        <span style="display: flex; align-items: center; gap: 4px; font-size: 11.5px; color: #E2A57E; padding: 1px 6px; border-radius: 4px; background: rgba(217,138,87,0.12)"><span style="width: 6px; height: 6px; border-radius: 50%; background: #D98A57"></span>3 uncommitted</span>
+      </div>
+
+      <h2 style="margin: 10px 0 0; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8B929D">GRAPH — COLOR BY MEANING, NOT BY LANE INDEX</h2>
+      <div style="display: flex; gap: 20px; padding: 14px 16px; border-radius: 10px; background: #23262C">
+        <svg width="96" height="150" viewBox="0 0 96 150" fill="none" role="img" aria-label="Graph sample: trunk, current branch, release, and other branches" style="flex: none">
+          <path d="M16 10V150" stroke="#78A6A5" stroke-width="2"></path>
+          <path d="M48 14V92C48 104 16 104 16 116" stroke="#9B83C9" stroke-width="2"></path>
+          <path d="M16 36C16 48 32 48 32 60V70C32 80 16 80 16 92" stroke="#8C95A6" stroke-width="2"></path>
+          <path d="M72 60V120C72 132 16 132 16 140" stroke="#B8A887" stroke-width="2"></path>
+          <circle cx="48" cy="14" r="8" stroke="#9B83C9" stroke-width="1.5" fill="#23262C"></circle>
+          <circle cx="48" cy="14" r="4.5" fill="#9B83C9"></circle>
+          <circle cx="48" cy="44" r="9" fill="rgba(155,131,201,0.28)"></circle>
+          <circle cx="48" cy="44" r="4.5" fill="#9B83C9"></circle>
+          <circle cx="16" cy="36" r="3.5" fill="#78A6A5" stroke="#23262C" stroke-width="2"></circle>
+          <circle cx="32" cy="64" r="4.5" fill="#8C95A6" stroke="#23262C" stroke-width="2"></circle>
+          <circle cx="72" cy="60" r="4.5" fill="#B8A887" stroke="#23262C" stroke-width="2"></circle>
+          <circle cx="16" cy="92" r="4.5" fill="#78A6A5" stroke="#23262C" stroke-width="2"></circle>
+        </svg>
+        <div style="display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 9px 10px; align-items: center; font-size: 12px; color: #ADB1B9; align-content: start">
+          <span style="width: 12px; height: 3px; border-radius: 2px; background: #9B83C9"></span><span><span style="color: #EDEBE8">Current branch</span> — the only lane in violet</span>
+          <span style="width: 12px; height: 3px; border-radius: 2px; background: #78A6A5"></span><span><span style="color: #EDEBE8">Trunk</span> — main / master / develop</span>
+          <span style="width: 12px; height: 3px; border-radius: 2px; background: #B8A887"></span><span><span style="color: #EDEBE8">Release &amp; tags</span> — release/*, hotfix/*</span>
+          <span style="width: 12px; height: 3px; border-radius: 2px; background: #8C95A6"></span><span><span style="color: #EDEBE8">Everything else</span> — two neutral slates</span>
+          <span style="width: 12px; height: 12px; box-sizing: border-box; border-radius: 50%; border: 1.5px solid #9B83C9"></span><span>HEAD ring · halo = selected · small dot = merge</span>
+        </div>
+      </div>
+
+      <h2 style="margin: 10px 0 0; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8B929D">DIFF — LOW-CHROMA FILLS, INTRALINE CARRIES THE SIGNAL</h2>
+      <div style="border-radius: 10px; overflow: hidden; background: #202328; font-family: 'JetBrains Mono', 'Cascadia Mono', Consolas, monospace; font-size: 12px; line-height: 22px">
+        <div style="display: flex; background: rgba(212,111,106,0.10)"><span style="width: 40px; text-align: right; padding-right: 8px; color: #C99490; font-size: 11px; background: rgba(212,111,106,0.12)">49</span><span style="width: 16px; text-align: center; color: #DE8C87">−</span><span style="white-space: pre; color: #C9CDD4"><span style="color: #B79CE3">foreach</span> (<span style="color: #B79CE3">var</span> <span style="background: rgba(222,140,135,0.30); border-radius: 2px">item</span> <span style="color: #B79CE3">in</span> <span style="background: rgba(222,140,135,0.30); border-radius: 2px">_invoice.LineItems</span>)</span></div>
+        <div style="display: flex; background: rgba(120,173,145,0.10)"><span style="width: 40px; text-align: right; padding-right: 8px; color: #97C3AB; font-size: 11px; background: rgba(120,173,145,0.12)">53</span><span style="width: 16px; text-align: center; color: #8FC0A6">+</span><span style="white-space: pre; color: #C9CDD4"><span style="color: #B79CE3">foreach</span> (<span style="color: #B79CE3">var</span> <span style="background: rgba(143,192,166,0.28); border-radius: 2px">group</span> <span style="color: #B79CE3">in</span> <span style="background: rgba(143,192,166,0.28); border-radius: 2px">groups</span>)</span></div>
+        <div style="display: flex"><span style="width: 40px; text-align: right; padding-right: 8px; color: #7A818C; font-size: 11px">54</span><span style="width: 16px"></span><span style="white-space: pre; color: #959CA7">{</span></div>
+      </div>
+    </div>
+
+    <!-- ═══ Column C: switcher + operations ═══ -->
+    <div style="display: flex; flex-direction: column; gap: 14px; min-width: 0">
+      <h2 style="margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8B929D">REPOSITORY SWITCHER · CTRL+P</h2>
+      <div style="border-radius: 10px; background: #2D3138; border: 1px solid #3A3F47; box-shadow: 0 18px 48px rgba(0,0,0,0.5); overflow: hidden">
+        <label style="display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 12px 0 14px; border-bottom: 1px solid #3A3F47; color: #8B929D">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5 14 14"></path></svg>
+          <input aria-label="Search repositories" placeholder="Switch repository, or type a branch name" style="flex: 1; min-width: 0; background: transparent; border: 0; outline: none; font-size: 13px">
+          <span style="font-size: 11px; color: #ADB1B9">Tab: groups</span>
+        </label>
+        <div style="padding: 6px">
+          <sc-for list="{{repoSections}}" as="sec" hint-placeholder-count="3">
+            <div style="padding: 8px 10px 4px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; color: #8B929D">{{sec.label}}</div>
+            <sc-for list="{{sec.repos}}" as="r" hint-placeholder-count="2">
+              <button style="width: 100%; display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 7px 10px; border-radius: 6px; text-align: left; {{r.rowStyle}}">
+                <span style="display: flex; align-items: center; justify-content: center"><span style="width: 8px; height: 8px; box-sizing: border-box; border-radius: 50%; {{r.dot}}"></span></span>
+                <span style="display: flex; flex-direction: column; gap: 1px; min-width: 0">
+                  <span style="font-size: 13px; {{r.nameStyle}}">{{r.name}}</span>
+                  <span style="font-size: 11.5px; color: #8B929D; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{r.branch}}</span>
+                </span>
+                <span style="font-size: 11.5px; white-space: nowrap; {{r.stateStyle}}">{{r.state}}</span>
+              </button>
+            </sc-for>
+          </sc-for>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px; height: 38px; padding: 0 14px; border-top: 1px solid #3A3F47; font-size: 12px; color: #ADB1B9; background: #282C32">
+          <button style="display: flex; align-items: center; gap: 6px; font-size: 12px"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"></rect><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"></rect><rect x="9" y="9" width="4.5" height="4.5" rx="1"></rect></svg>Repository Hub <span style="color: #8B929D">Ctrl Shift H</span></button>
+          <button style="font-size: 12px">Add folder…</button>
+          <span style="flex: 1"></span>
+          <span style="color: #8B929D">↑↓ move · Enter open · Ctrl+D favorite</span>
+        </div>
+      </div>
+
+      <h2 style="margin: 10px 0 0; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8B929D">OPERATIONS CENTER — EXPANDED FROM THE STATUS BAR</h2>
+      <div style="border-radius: 10px; background: #23262C; border: 1px solid #2E3239; overflow: hidden">
+        <div style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px 0 14px; border-bottom: 1px solid #2B2F36">
+          <span style="font-weight: 600">Operations</span>
+          <span style="font-size: 12px; color: #8B929D">All repositories</span>
+          <span style="flex: 1"></span>
+          <button style="font-size: 12px; color: #ADB1B9">Clear finished</button>
+        </div>
+
+        <!-- awaiting input -->
+        <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; padding: 12px 14px; background: rgba(217,138,87,0.07); border-bottom: 1px solid #2B2F36">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#E2A57E" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" style="margin-top: 1px"><path d="M6 4v8M10 4v8"></path></svg>
+          <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0">
+            <div style="display: flex; gap: 8px; align-items: baseline"><span style="font-weight: 600">Rebase paused — needs you</span><span style="font-size: 12px; color: #8B929D">identity-service</span></div>
+            <div style="font-size: 12px; color: #ADB1B9; line-height: 17px">Rebasing <span style="color: #EDEBE8">feature/token-rotation</span> onto origin/main. 2 of 5 commits applied; conflict in <span style="font-family: 'JetBrains Mono', Consolas, monospace; font-size: 11.5px; color: #EDEBE8">TokenService.cs</span>. Nothing is lost — abort restores the branch exactly.</div>
+            <div style="display: flex; gap: 6px; margin-top: 4px">
+              <button style="height: 26px; padding: 0 10px; border-radius: 6px; background: #D98A57; color: #17191D; font-size: 12px; font-weight: 600">Resolve conflict</button>
+              <button style="height: 26px; padding: 0 10px; border-radius: 6px; background: #2D3138; font-size: 12px">Skip commit</button>
+              <button style="height: 26px; padding: 0 10px; border-radius: 6px; font-size: 12px; color: #ADB1B9">Abort rebase</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- running -->
+        <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; padding: 12px 14px; border-bottom: 1px solid #2B2F36">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="margin-top: 1px"><circle cx="8" cy="8" r="6" stroke="#2E3239" stroke-width="2"></circle><path d="M8 2a6 6 0 0 1 6 6" stroke="#78A6A5" stroke-width="2" stroke-linecap="round"></path></svg>
+          <div style="display: flex; flex-direction: column; gap: 5px; min-width: 0">
+            <div style="display: flex; gap: 8px; align-items: baseline"><span style="font-weight: 600">Pushing 3 commits to origin/main</span><span style="font-size: 12px; color: #8B929D">pricing-engine</span><span style="flex: 1"></span><button style="font-size: 12px; color: #ADB1B9">Cancel</button></div>
+            <div aria-hidden="true" style="height: 4px; border-radius: 2px; background: #2E3239; display: flex"><span style="width: 72%; border-radius: 2px; background: #78A6A5"></span></div>
+            <div style="font-size: 11.5px; color: #8B929D; font-family: 'JetBrains Mono', Consolas, monospace">Writing objects: 1,204/1,672 (72%) · 2.4 MiB/s</div>
+          </div>
+        </div>
+
+        <!-- failed -->
+        <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; padding: 12px 14px; border-bottom: 1px solid #2B2F36">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#DE8C87" stroke-width="1.6" stroke-linecap="round" aria-hidden="true" style="margin-top: 1px"><circle cx="8" cy="8" r="6"></circle><path d="M6 6l4 4M10 6l-4 4"></path></svg>
+          <div style="display: flex; flex-direction: column; gap: 6px; min-width: 0">
+            <div style="display: flex; gap: 8px; align-items: baseline"><span style="font-weight: 600">Commit rejected by pre-commit hook</span><span style="font-size: 12px; color: #8B929D">customer-portal</span><span style="flex: 1"></span><span style="font-size: 12px; color: #8B929D">2 min ago</span></div>
+            <div style="font-size: 12px; color: #ADB1B9">ESLint reported 1 error. Your staged changes and message are kept in the composer.</div>
+            <pre style="margin: 0; padding: 8px 10px; border-radius: 6px; background: #1A1C20; font-family: 'JetBrains Mono', 'Cascadia Mono', Consolas, monospace; font-size: 11.5px; line-height: 17px; color: #ADB1B9; white-space: pre; overflow: hidden">$ git commit -F .git/COMMIT_EDITMSG
+husky - pre-commit hook exited with code 1
+<span style="color: #EDEBE8">src/consent/Banner.tsx</span>
+  14:7  <span style="color: #DE8C87">error</span>  'trackingId' is assigned but never used</pre>
+            <div style="display: flex; gap: 12px; font-size: 12px"><button style="color: #B9A6DE; font-size: 12px">Open Banner.tsx:14</button><button style="color: #ADB1B9; font-size: 12px">Copy output</button><button style="color: #ADB1B9; font-size: 12px">Retry</button></div>
+          </div>
+        </div>
+
+        <!-- success -->
+        <div style="display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; padding: 12px 14px">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#8FC0A6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-top: 1px"><path d="M3 8.5l3 3 7-7"></path></svg>
+          <div style="display: flex; gap: 8px; align-items: baseline; min-width: 0">
+            <span style="font-weight: 600; white-space: nowrap">Fetched origin</span>
+            <span style="font-size: 12px; color: #ADB1B9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">4 new commits on origin/main, tag v2.8.1 · atlas-billing</span>
+            <span style="flex: 1"></span>
+            <span style="font-size: 12px; color: #8B929D; white-space: nowrap">6 min ago</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1100}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var accents = [
+      ['Violet', '#9B83C9', 'rgba(155,131,201,0.18)', '#CDBEEB', 'You — HEAD, current branch, selection, outgoing ↑, primary action'],
+      ['Orange', '#D98A57', 'rgba(217,138,87,0.16)', '#E8B08A', 'Attention — incoming ↓, uncommitted work, paused operations, warnings'],
+      ['Green', '#78AD91', 'rgba(120,173,145,0.16)', '#8FC0A6', 'Settled — success, additions, verified signatures, clean trees'],
+      ['Teal', '#78A6A5', 'rgba(120,166,165,0.16)', '#93BDBC', 'Trunk & activity — main lane, remote refs, running operations'],
+      ['Red', '#D46F6A', 'rgba(212,111,106,0.16)', '#DE8C87', 'Failure & destruction — errors, deletions, force and reset actions'],
+      ['Blue-gray', '#8EA3BF', 'rgba(142,163,191,0.16)', '#9DAFC7', 'Information — modified files, hunk headers, neutral notices']
+    ].map(function (x) { return { name: x[0], c: x[1], tint: x[2], text: x[3], role: x[4] }; });
+
+    var repo = function (name, branch, state, kind, cur) {
+      var st = { clean: ['color: #8B929D', 'background: #8FC0A6'], dirty: ['color: #E2A57E', 'background: #D98A57'],
+        running: ['color: #93BDBC', 'border: 2px solid #78A6A5'], paused: ['color: #E8B08A', 'background: #D98A57; box-shadow: 0 0 0 3px rgba(217,138,87,0.25)'] }[kind];
+      return { name: name, branch: branch, state: state, stateStyle: st[0], dot: st[1],
+        rowStyle: cur ? 'background: #3A3F47' : 'background: transparent',
+        nameStyle: cur ? 'color: #EDEBE8; font-weight: 600' : 'color: #EDEBE8' };
+    };
+    var repoSections = [
+      { label: 'FAVORITES', repos: [
+        repo('atlas-billing', 'feature/invoice-pdf-renderer · D:\\Source\\Repos', '3 changed · ↑1', 'dirty', true),
+        repo('pricing-engine', 'main · D:\\Source\\Repos', 'Pushing 72%', 'running', false) ] },
+      { label: 'RECENT', repos: [
+        repo('identity-service', 'rebasing feature/token-rotation', 'Paused · conflict', 'paused', false),
+        repo('customer-portal', 'develop · D:\\Source\\Repos\\web', 'Clean · ↓7', 'clean', false) ] },
+      { label: 'PLATFORM', repos: [
+        repo('infra-terraform', 'main · D:\\Source\\Repos\\platform', 'Clean', 'clean', false),
+        repo('shared-contracts', 'release/4.1 · D:\\Source\\Repos\\platform', '12 changed', 'dirty', false) ] }
+    ];
+    return { accents: accents, repoSections: repoSections };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CentralGit — History, Focus</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#101114}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:default}
+input{font:inherit;color:inherit}
+input::placeholder{color:#8B929D}
+a{color:#B9A6DE}a:hover{color:#D3C6EE}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; display: flex; flex-direction: column; background: #1D2025; color: #EDEBE8; font-family: 'Segoe UI Variable Text', 'Segoe UI', Inter, system-ui, sans-serif; font-size: 13px; overflow: hidden">
+
+<!-- ═══ Title bar ═══ -->
+<header style="height: 44px; flex: none; display: grid; grid-template-columns: minmax(0, 1fr) 460px minmax(0, 1fr); align-items: center; background: #17191D; border-bottom: 1px solid #0F1013">
+  <div style="display: flex; align-items: center; gap: 4px; padding-left: 12px; min-width: 0">
+    <div aria-hidden="true" style="width: 22px; height: 22px; border-radius: 6px; background: #2A2E35; display: flex; align-items: center; justify-content: center; margin-right: 8px; flex: none">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 2.5v9M4 8.5c0-3 6-2 6-5" stroke="#9B83C9" stroke-width="1.6" stroke-linecap="round"></path><circle cx="10" cy="3.5" r="1.9" fill="#D98A57"></circle><circle cx="4" cy="11.5" r="1.9" fill="#9B83C9"></circle></svg>
+    </div>
+    <button aria-label="Switch repository, Ctrl+P" style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px 0 10px; border-radius: 6px; background: #23262C">
+      <span style="font-weight: 600">atlas-billing</span>
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#8B929D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l4 4 4-4"></path></svg>
+    </button>
+    <span aria-hidden="true" style="color: #4B515B; margin: 0 2px">/</span>
+    <button aria-label="Switch branch" style="display: flex; align-items: center; gap: 7px; height: 30px; padding: 0 8px; border-radius: 6px; min-width: 0">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#9B83C9" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="5" cy="3.5" r="1.5"></circle><circle cx="5" cy="12.5" r="1.5"></circle><circle cx="11" cy="5.5" r="1.5"></circle><path d="M5 5v6M11 7c0 2.5-6 2-6 4"></path></svg>
+      <span style="white-space: nowrap">feature/invoice-pdf-renderer</span>
+      <span style="display: flex; align-items: center; gap: 4px; font-size: 11.5px; color: #E2A57E; padding: 1px 6px; border-radius: 4px; background: rgba(217,138,87,0.12)"><span style="width: 6px; height: 6px; border-radius: 50%; background: #D98A57"></span>3</span>
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="#8B929D" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l4 4 4-4"></path></svg>
+    </button>
+  </div>
+  <label style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 6px 0 10px; border-radius: 6px; background: #23262C; border: 1px solid #2E3239; color: #8B929D">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5 14 14"></path></svg>
+    <input aria-label="Command palette" placeholder="Search commits, branches, files, or run a command" style="flex: 1; min-width: 0; background: transparent; border: 0; outline: none; font-size: 12.5px">
+    <span style="font-size: 11px; color: #ADB1B9; padding: 2px 6px; border-radius: 4px; background: #2D3138; white-space: nowrap">Ctrl K</span>
+  </label>
+  <div style="display: flex; align-items: center; justify-content: flex-end; gap: 2px; height: 44px">
+    <button style="display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 6px; color: #ADB1B9; font-size: 12.5px">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 8a5 5 0 0 1-8.6 3.5M3 8a5 5 0 0 1 8.6-3.5"></path><path d="M11.8 2v2.6h-2.6M4.2 14v-2.6h2.6"></path></svg>Fetch
+    </button>
+    <button style="display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 6px; color: #ADB1B9; font-size: 12.5px">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v10M4 8.5l4 4 4-4"></path></svg>Pull
+    </button>
+    <button style="display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px 0 10px; border-radius: 6px; background: rgba(155,131,201,0.14); color: #DCD0F2; font-size: 12.5px; margin-right: 8px">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13.5v-10M4 7.5l4-4 4 4"></path></svg>Push
+      <span style="font-size: 11px; font-weight: 600; padding: 0 5px; border-radius: 4px; background: #9B83C9; color: #17191D">1</span>
+    </button>
+    <button aria-label="Minimize" style="width: 46px; height: 44px; display: flex; align-items: center; justify-content: center; color: #ADB1B9"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M0 5h10" stroke="currentColor"></path></svg></button>
+    <button aria-label="Maximize" style="width: 46px; height: 44px; display: flex; align-items: center; justify-content: center; color: #ADB1B9"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><rect x="0.5" y="0.5" width="9" height="9" rx="1.5" stroke="currentColor"></rect></svg></button>
+    <button aria-label="Close" style="width: 46px; height: 44px; display: flex; align-items: center; justify-content: center; color: #ADB1B9"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M0 0l10 10M10 0 0 10" stroke="currentColor"></path></svg></button>
+  </div>
+</header>
+
+<!-- ═══ Compact history timeline (the history pane, collapsed to one line) ═══ -->
+<div style="height: 48px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 12px 0 8px; background: #1D2025; border-bottom: 1px solid #101114">
+  <a href="Investigate.dc.html" aria-label="Back to Investigate, Escape" style="height: 30px; display: flex; align-items: center; gap: 7px; padding: 0 10px 0 8px; border-radius: 6px; color: #ADB1B9; font-size: 12.5px; text-decoration: none">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 8H3M7 4 3 8l4 4"></path></svg>Investigate
+    <span style="font-size: 10.5px; color: #8B929D; padding: 1px 5px; border-radius: 3px; background: #2A2E35">Esc</span>
+  </a>
+  <div aria-hidden="true" style="width: 1px; height: 20px; background: #2E3239"></div>
+  <nav aria-label="Branch timeline" style="flex: 1; min-width: 0; position: relative; height: 48px; display: flex; align-items: center">
+    <div aria-hidden="true" style="position: absolute; left: 14px; right: 14px; top: 23px; height: 2px; background: linear-gradient(90deg, rgba(155,131,201,0.15), #9B83C9 18%)"></div>
+    <div style="position: relative; display: grid; grid-template-columns: 90px repeat(4, minmax(0, 1fr)); width: 100%; align-items: center">
+      <button style="display: flex; align-items: center; gap: 6px; color: #8B929D; font-size: 12px; padding-left: 4px">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4 6 8l4 4"></path></svg>Older
+      </button>
+      <sc-for list="{{timeline}}" as="t" hint-placeholder-count="4">
+        <button style="display: flex; align-items: center; gap: 9px; min-width: 0; padding-right: 14px; text-align: left">
+          <span style="flex: none; border-radius: 50%; {{t.dot}}"></span>
+          <span style="display: inline-flex; align-items: center; gap: 8px; min-width: 0; padding: 3px 8px; border-radius: 5px; {{t.pill}}">
+            <span style="font-family: 'JetBrains Mono', 'Cascadia Mono', Consolas, monospace; font-size: 11.5px; flex: none; {{t.hashStyle}}">{{t.hash}}</span>
+            <span style="font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; {{t.subjStyle}}">{{t.subject}}</span>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+  </nav>
+  <span style="font-size: 11.5px; color: #8B929D; white-space: nowrap">Alt ← → between commits</span>
+  <div role="group" aria-label="Workspace mode" style="display: flex; padding: 2px; gap: 2px; border-radius: 6px; background: #17191D">
+    <a href="Main.dc.html" style="height: 22px; display: flex; align-items: center; padding: 0 8px; border-radius: 4px; color: #ADB1B9; font-size: 12px; text-decoration: none">Browse</a>
+    <a href="Investigate.dc.html" style="height: 22px; display: flex; align-items: center; padding: 0 8px; border-radius: 4px; color: #ADB1B9; font-size: 12px; text-decoration: none">Investigate</a>
+    <span style="height: 22px; display: flex; align-items: center; padding: 0 8px; border-radius: 4px; background: #363B43; color: #EDEBE8; font-size: 12px">Focus</span>
+  </div>
+</div>
+
+<!-- ═══ Diff header ═══ -->
+<div style="height: 44px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 10px; background: #23262C; border-bottom: 1px solid #2B2F36">
+  <div style="display: flex">
+    <button aria-label="Previous file, Ctrl+Alt+Up" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: #5A606B"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4 6 8l4 4"></path></svg></button>
+    <button aria-label="Next file, Ctrl+Alt+Down" style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: #ADB1B9"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 4l4 4-4 4"></path></svg></button>
+  </div>
+  <button aria-label="Choose file" style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px; border-radius: 6px; background: #2A2E35">
+    <span style="font-size: 11px; font-weight: 600; color: #9DAFC7; font-family: 'JetBrains Mono', 'Cascadia Mono', Consolas, monospace">M</span>
+    <span style="font-weight: 600">LineItemTable.cs</span>
+    <span style="font-size: 12px; color: #8B929D">1 of 6</span>
+    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#8B929D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l4 4 4-4"></path></svg>
+  </button>
+  <span style="font-size: 12px; color: #8B929D">src/Atlas.Billing.Pdf/Layout/</span>
+  <span style="font-size: 12px; color: #8FC0A6">+21</span><span style="font-size: 12px; color: #DE8C87; margin-left: -6px">−2</span>
+  <span style="flex: 1"></span>
+  <span style="font-size: 12px; color: #8B929D; white-space: nowrap">Change 2 of 4</span>
+  <div style="display: flex">
+    <button aria-label="Previous change, Alt+Up" style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: #ADB1B9"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10l4-4 4 4"></path></svg></button>
+    <button aria-label="Next change, Alt+Down" style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 6px; color: #ADB1B9"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l4 4 4-4"></path></svg></button>
+  </div>
+  <div aria-hidden="true" style="width: 1px; height: 18px; background: #2E3239"></div>
+  <div role="group" aria-label="Diff layout" style="display: flex; padding: 2px; gap: 2px; border-radius: 6px; background: #1D2025">
+    <button style="height: 22px; padding: 0 8px; border-radius: 4px; background: #363B43; font-size: 12px">Split</button>
+    <button style="height: 22px; padding: 0 8px; border-radius: 4px; color: #ADB1B9; font-size: 12px">Unified</button>
+  </div>
+  <button style="display: flex; align-items: center; gap: 6px; height: 26px; padding: 0 8px; border-radius: 6px; color: #ADB1B9; font-size: 12px">
+    <span aria-hidden="true" style="width: 26px; height: 14px; border-radius: 7px; background: #9B83C9; display: flex; justify-content: flex-end; padding: 2px; box-sizing: border-box"><span style="width: 10px; height: 10px; border-radius: 50%; background: #17191D"></span></span>
+    Collapse unchanged
+  </button>
+  <button style="display: flex; align-items: center; gap: 6px; height: 26px; padding: 0 8px; border-radius: 6px; color: #ADB1B9; font-size: 12px">
+    <span aria-hidden="true" style="width: 26px; height: 14px; border-radius: 7px; background: #363B43; display: flex; padding: 2px; box-sizing: border-box"><span style="width: 10px; height: 10px; border-radius: 50%; background: #8B929D"></span></span>
+    Whitespace
+  </button>
+  <button aria-label="Open in external editor" style="height: 26px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border-radius: 6px; color: #ADB1B9; font-size: 12px"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2.5h4.5V7M13.5 2.5l-6 6M12 9.5V13a.5.5 0 0 1-.5.5H3a.5.5 0 0 1-.5-.5V4.5A.5.5 0 0 1 3 4h3.5"></path></svg>Open in VS Code</button>
+</div>
+<div style="height: 22px; flex: none; display: flex; font-size: 11px; color: #8B929D; background: #202328; border-bottom: 1px solid #2B2F36; font-family: 'JetBrains Mono', 'Cascadia Mono', Consolas, monospace; padding-right: 14px">
+  <span style="flex: 1; display: flex; align-items: center; padding-left: 14px">c5a1f7d · Introduce InvoiceDocument layout model</span>
+  <span style="width: 1px; background: #17191D"></span>
+  <span style="flex: 1; display: flex; align-items: center; padding-left: 14px">7c2d0b4 · Group invoice line items by tax rate</span>
+</div>
+
+<!-- ═══ Diff, full width ═══ -->
+<div style="flex: 1; min-height: 0; display: flex; background: #202328">
+  <div style="flex: 1; min-width: 0; overflow: hidden; font-family: 'JetBrains Mono', 'Cascadia Mono', Consolas, monospace; font-size: 12.5px; line-height: 19px">
+    <sc-for list="{{diff}}" as="row" hint-placeholder-count="36">
+      <sc-if value="{{row.isHunk}}" hint-placeholder-val="{{false}}">
+        <div style="height: 26px; display: flex; align-items: center; padding: 0 14px 0 74px; background: #262A31; color: #9DAFC7; font-size: 11.5px; border-top: 1px solid #2B2F36; border-bottom: 1px solid #2B2F36">{{row.text}}</div>
+      </sc-if>
+      <sc-if value="{{row.isFold}}" hint-placeholder-val="{{false}}">
+        <button style="width: 100%; height: 24px; display: flex; align-items: center; gap: 8px; padding: 0 14px 0 74px; background: #1B1E22; color: #8B929D; font-size: 11.5px; font-family: inherit">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 6l3-3 3 3M5 10l3 3 3-3"></path></svg>{{row.text}}
+        </button>
+      </sc-if>
+      <sc-if value="{{row.isCode}}" hint-placeholder-val="{{true}}">
+        <div style="height: 19px; display: flex">
+          <div style="flex: 1; min-width: 0; display: flex; {{row.L.cell}}">
+            <span style="width: 56px; flex: none; text-align: right; padding-right: 10px; box-sizing: border-box; font-size: 11px; {{row.L.gut}}">{{row.L.num}}</span>
+            <span style="width: 18px; flex: none; text-align: center; {{row.L.mk}}">{{row.L.mark}}</span>
+            <span style="flex: 1; min-width: 0; white-space: pre; overflow: hidden"><sc-for list="{{row.L.toks}}" as="t"><span style="color: {{t.c}}; background: {{t.bg}}; border-radius: 2px">{{t.s}}</span></sc-for></span>
+          </div>
+          <div style="width: 1px; flex: none; background: #17191D"></div>
+          <div style="flex: 1; min-width: 0; display: flex; {{row.R.cell}}">
+            <span style="width: 56px; flex: none; text-align: right; padding-right: 10px; box-sizing: border-box; font-size: 11px; {{row.R.gut}}">{{row.R.num}}</span>
+            <span style="width: 18px; flex: none; text-align: center; {{row.R.mk}}">{{row.R.mark}}</span>
+            <span style="flex: 1; min-width: 0; white-space: pre; overflow: hidden"><sc-for list="{{row.R.toks}}" as="t"><span style="color: {{t.c}}; background: {{t.bg}}; border-radius: 2px">{{t.s}}</span></sc-for></span>
+          </div>
+        </div>
+      </sc-if>
+    </sc-for>
+  </div>
+  <!-- change overview ruler -->
+  <div aria-label="Change overview" style="width: 14px; flex: none; position: relative; background: #1B1E22; border-left: 1px solid #17191D">
+    <span style="position: absolute; left: 3px; right: 3px; top: 3%; height: 42%; border-radius: 2px; background: rgba(255,255,255,0.07)"></span>
+    <span style="position: absolute; left: 4px; right: 4px; top: 11%; height: 6%; border-radius: 1px; background: #78AD91"></span>
+    <span style="position: absolute; left: 4px; right: 4px; top: 17.5%; height: 1.5%; border-radius: 1px; background: #D98A57"></span>
+    <span style="position: absolute; left: 4px; right: 4px; top: 21%; height: 6%; border-radius: 1px; background: #78AD91"></span>
+    <span style="position: absolute; left: 4px; right: 4px; top: 63%; height: 14%; border-radius: 1px; background: #78AD91"></span>
+  </div>
+</div>
+
+<!-- ═══ Status / operations bar ═══ -->
+<footer style="height: 28px; flex: none; display: flex; align-items: center; gap: 14px; padding: 0 6px 0 12px; background: #17191D; border-top: 1px solid #0F1013; font-size: 12px; color: #ADB1B9">
+  <span style="display: flex; align-items: center; gap: 6px; white-space: nowrap">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#9B83C9" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="5" cy="3.5" r="1.5"></circle><circle cx="5" cy="12.5" r="1.5"></circle><circle cx="11" cy="5.5" r="1.5"></circle><path d="M5 5v6M11 7c0 2.5-6 2-6 4"></path></svg>
+    1 ahead of <span style="color: #EDEBE8">origin</span>
+  </span>
+  <span aria-hidden="true" style="width: 1px; height: 14px; background: #2E3239"></span>
+  <span style="display: flex; align-items: center; gap: 6px; white-space: nowrap">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="#8FC0A6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>
+    <span style="color: #8B929D">pricing-engine</span> Pushed 3 commits to origin/main
+    <span style="color: #8B929D">just now</span>
+  </span>
+  <span style="flex: 1"></span>
+  <button style="display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: 5px; background: rgba(217,138,87,0.14); color: #E8B08A; white-space: nowrap; font-size: 12px">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 4v8M10 4v8"></path></svg>
+    identity-service · rebase paused, 1 conflict
+  </button>
+  <button style="display: flex; align-items: center; gap: 6px; height: 22px; padding: 0 8px; border-radius: 5px; white-space: nowrap; font-size: 12px">
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h7"></path></svg>
+    Operations
+    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10l4-4 4 4"></path></svg>
+  </button>
+  <span style="color: #8B929D; font-size: 11.5px; padding-right: 6px">git 2.51</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var timeline = [
+      ['5f3b9a8', 'Spike: QuestPDF renderer behind feature flag', 0],
+      ['c5a1f7d', 'Introduce InvoiceDocument layout model', 0],
+      ['7c2d0b4', 'Group invoice line items by tax rate', 1],
+      ['a3f9e21', 'Paginate long invoices across A4 pages · HEAD', 2]
+    ].map(function (t) {
+      var cur = t[2] === 1, head = t[2] === 2;
+      return { hash: t[0], subject: t[1],
+        dot: cur ? 'width: 12px; height: 12px; background: #9B83C9; box-shadow: 0 0 0 4px rgba(155,131,201,0.28)'
+          : (head ? 'width: 12px; height: 12px; box-sizing: border-box; background: #1D2025; border: 2px solid #9B83C9' : 'width: 9px; height: 9px; background: #9B83C9; box-shadow: 0 0 0 3px #1D2025'),
+        pill: cur ? 'background: rgba(155,131,201,0.17)' : 'background: #1D2025',
+        hashStyle: cur ? 'color: #DCD0F2' : 'color: #8B929D',
+        subjStyle: cur ? 'color: #EDEBE8; font-weight: 600' : 'color: #ADB1B9' };
+    });
+
+    var KW = ['public', 'private', 'protected', 'internal', 'static', 'void', 'var', 'new', 'foreach', 'in', 'return', 'sealed', 'class', 'readonly', 'if', 'else', 'using', 'this', 'null', 'true', 'false', 'int', 'decimal', 'string', 'bool'];
+    var C = { kw: '#B79CE3', type: '#86BAB8', str: '#DDA77F', fn: '#E6DFD3', id: '#C9CDD4', num: '#D4BC85', punc: '#959CA7' };
+    var tokenize = function (src, hlBg) {
+      var out = [], hl = false, m;
+      var re = /(«|»)|(\$?"(?:[^"\\]|\\.)*")|(\d+(?:\.\d+)?)|([A-Za-z_]\w*)|(\s+)|([^\s\w«»"]+)/g;
+      while ((m = re.exec(src)) !== null) {
+        if (m[1]) { hl = m[1] === '«'; continue; }
+        var s = m[0], c = C.punc;
+        if (m[2]) c = C.str;
+        else if (m[3]) c = C.num;
+        else if (m[4]) {
+          var rest = src.slice(re.lastIndex);
+          if (KW.indexOf(s) >= 0) c = C.kw;
+          else if (rest.charAt(0) === '(') c = C.fn;
+          else if (/^[A-Z]/.test(s)) c = C.type;
+          else c = C.id;
+        } else if (m[5]) c = C.id;
+        out.push({ s: s, c: c, bg: hl ? hlBg : 'transparent' });
+      }
+      return out;
+    };
+    var ST = {
+      c: { cell: 'background: transparent', gut: 'color: #7A818C', mk: 'color: transparent', mark: '', hl: 'transparent' },
+      d: { cell: 'background: rgba(212,111,106,0.10)', gut: 'color: #C99490; background: rgba(212,111,106,0.12)', mk: 'color: #DE8C87', mark: '−', hl: 'rgba(222,140,135,0.30)' },
+      a: { cell: 'background: rgba(120,173,145,0.10)', gut: 'color: #97C3AB; background: rgba(120,173,145,0.12)', mk: 'color: #8FC0A6', mark: '+', hl: 'rgba(143,192,166,0.28)' },
+      e: { cell: 'background: repeating-linear-gradient(135deg, transparent 0 7px, rgba(255,255,255,0.025) 7px 8px)', gut: 'color: transparent', mk: 'color: transparent', mark: '', hl: 'transparent' }
+    };
+    var side = function (t, n, src) {
+      var s = ST[t];
+      return { num: n == null ? '' : String(n), mark: s.mark, cell: s.cell, gut: s.gut, mk: s.mk, toks: t === 'e' ? [] : tokenize(src || '', s.hl) };
+    };
+    var D = [
+      ['h', '@@ -42,15 +42,24 @@   public sealed class LineItemTable : IComponent'],
+      ['=', 42, 42, '    public void Compose(IContainer container)'],
+      ['=', 43, 43, '    {'],
+      ['=', 44, 44, '        container.Table(table =>'],
+      ['=', 45, 45, '        {'],
+      ['=', 46, 46, '            DefineColumns(table);'],
+      ['=', 47, 47, '            ComposeHeader(table);'],
+      ['=', 48, 48, ''],
+      ['+', 49, '            var groups = _invoice.LineItems'],
+      ['+', 50, '                .GroupBy(item => item.TaxCategory)'],
+      ['+', 51, '                .OrderByDescending(g => g.Key.Rate);'],
+      ['+', 52, ''],
+      ['~', 49, '            foreach (var «item» in «_invoice.LineItems»)', 53, '            foreach (var «group» in «groups»)'],
+      ['=', 50, 54, '            {'],
+      ['+', 55, '                foreach (var item in group)'],
+      ['+', 56, '                {'],
+      ['~', 51, '                ComposeRow(table, item);', 57, '«    »                ComposeRow(table, item);'],
+      ['+', 58, '                }'],
+      ['+', 59, ''],
+      ['+', 60, '                ComposeSubtotal(table, group.Key, group);'],
+      ['=', 52, 61, '            }'],
+      ['=', 53, 62, ''],
+      ['=', 54, 63, '            table.Footer(f => ComposeTotals(f, _totals));'],
+      ['=', 55, 64, '        });'],
+      ['=', 56, 65, '    }'],
+      ['f', '14 unchanged lines  ·  57–70  ·  click or Alt+Enter to expand'],
+      ['h', '@@ -71,6 +80,16 @@   private void ComposeRow(TableDescriptor table, LineItem item)'],
+      ['=', 71, 80, '        table.Cell().Element(BodyCell).AlignRight()'],
+      ['=', 72, 81, '            .Text(item.NetAmount.ToString("C", _culture));'],
+      ['=', 73, 82, '    }'],
+      ['=', 74, 83, ''],
+      ['+', 84, '    private void ComposeSubtotal(TableDescriptor table,'],
+      ['+', 85, '        TaxCategory category, IEnumerable<LineItem> items)'],
+      ['+', 86, '    {'],
+      ['+', 87, '        var net = items.Sum(i => i.NetAmount);'],
+      ['+', 88, '        table.Cell().ColumnSpan(4).Element(SubtotalCell)'],
+      ['+', 89, '            .Text($"Subtotal {category.Label}");'],
+      ['+', 90, '        table.Cell().Element(SubtotalCell).AlignRight()'],
+      ['+', 91, '            .Text(net.ToString("C", _culture));'],
+      ['+', 92, '    }'],
+      ['+', 93, ''],
+      ['=', 75, 94, '    private void ComposeTotals(IContainer footer)'],
+      ['=', 76, 95, '    {'],
+      ['=', 77, 96, '        footer.Element(TotalsBlock).Column(column =>'],
+      ['f', '61 unchanged lines to end of file']
+    ];
+    var diff = D.map(function (r) {
+      if (r[0] === 'h') return { isHunk: true, isFold: false, isCode: false, text: r[1] };
+      if (r[0] === 'f') return { isHunk: false, isFold: true, isCode: false, text: r[1] };
+      var L, Rr;
+      if (r[0] === '=') { L = side('c', r[1], r[3]); Rr = side('c', r[2], r[3]); }
+      else if (r[0] === '+') { L = side('e'); Rr = side('a', r[1], r[2]); }
+      else if (r[0] === '-') { L = side('d', r[1], r[2]); Rr = side('e'); }
+      else { L = side('d', r[1], r[2]); Rr = side('a', r[3], r[4]); }
+      return { isHunk: false, isFold: false, isCode: true, L: L, R: Rr };
+    });
+
+    return { timeline: timeline, diff: diff };
+  }
+}
+</script>
+</body>
+</html>

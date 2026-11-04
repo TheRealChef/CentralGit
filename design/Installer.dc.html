@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CentralGit — Installer</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#101114}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:default}
+input{font:inherit;color:inherit}
+a{color:#B9A6DE}a:hover{color:#D3C6EE}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1180px; box-sizing: border-box; padding: 50px 60px 60px; background: #121316; color: #EDEBE8; font-family: 'Segoe UI Variable Text', 'Segoe UI', Inter, system-ui, sans-serif; font-size: 13px; display: grid; grid-template-columns: repeat(2, 720px); column-gap: 40px; row-gap: 50px; overflow: hidden">
+
+<!-- ═══ 1 · Location ═══ -->
+<div style="display: flex; flex-direction: column; gap: 12px">
+  <div style="font-size: 12px; color: #8B929D"><span style="color: #EDEBE8; font-weight: 600">1 · Location</span> — per-user install by default, no admin prompt</div>
+  <div style="width: 720px; height: 480px; display: flex; flex-direction: column; border-radius: 10px; background: #1D2025; border: 1px solid #2E3239; box-shadow: 0 24px 60px rgba(0,0,0,0.5); overflow: hidden">
+    <div style="height: 40px; flex: none; display: flex; align-items: center; gap: 10px; padding-left: 14px; background: #17191D">
+      <svg width="16" height="16" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M4 2.5v9M4 8.5c0-3 6-2 6-5" stroke="#9B83C9" stroke-width="1.6" stroke-linecap="round"></path><circle cx="10" cy="3.5" r="1.9" fill="#D98A57"></circle><circle cx="4" cy="11.5" r="1.9" fill="#9B83C9"></circle></svg>
+      <span style="font-size: 12px; color: #ADB1B9">CentralGit Setup</span>
+      <span style="flex: 1"></span>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: #8B929D; margin-right: 8px">
+        <span style="color: #EDEBE8">Location</span><span style="width: 18px; height: 1px; background: #3A3F47"></span><span>Options</span><span style="width: 18px; height: 1px; background: #3A3F47"></span><span>Install</span>
+      </div>
+      <button aria-label="Close setup" style="width: 46px; height: 40px; display: flex; align-items: center; justify-content: center; color: #ADB1B9"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M0 0l10 10M10 0 0 10" stroke="currentColor"></path></svg></button>
+    </div>
+    <div style="flex: 1; padding: 28px 36px 0; display: flex; flex-direction: column">
+      <h1 style="margin: 0; font-size: 20px; font-weight: 600">Install CentralGit 0.9.0</h1>
+      <p style="margin: 6px 0 0; font-size: 13px; color: #ADB1B9">A native Git client for Windows · 182 MB on disk</p>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 22px">
+        <button role="radio" aria-checked="true" style="display: flex; gap: 10px; padding: 14px; border-radius: 8px; background: rgba(155,131,201,0.12); border: 1px solid rgba(155,131,201,0.55); text-align: left">
+          <span style="width: 16px; height: 16px; flex: none; box-sizing: border-box; border-radius: 50%; border: 5px solid #9B83C9; margin-top: 1px"></span>
+          <span style="display: flex; flex-direction: column; gap: 3px"><span style="font-weight: 600">Just me</span><span style="font-size: 12px; color: #ADB1B9; line-height: 17px">No administrator rights. Updates install silently in the background.</span></span>
+        </button>
+        <button role="radio" aria-checked="false" style="display: flex; gap: 10px; padding: 14px; border-radius: 8px; background: #23262C; border: 1px solid #2E3239; text-align: left">
+          <span style="width: 16px; height: 16px; flex: none; box-sizing: border-box; border-radius: 50%; border: 1.5px solid #5A606B; margin-top: 1px"></span>
+          <span style="display: flex; flex-direction: column; gap: 3px"><span style="font-weight: 600">Everyone on this PC</span><span style="font-size: 12px; color: #ADB1B9; line-height: 17px">Requires administrator. Installs to Program Files.</span></span>
+        </button>
+      </div>
+      <label style="display: flex; flex-direction: column; gap: 6px; margin-top: 18px; font-size: 12px; color: #ADB1B9">Install location
+        <span style="display: flex; gap: 8px">
+          <input value="C:\Users\mara\AppData\Local\Programs\CentralGit" style="flex: 1; height: 32px; padding: 0 10px; border-radius: 6px; background: #23262C; border: 1px solid #2E3239; outline: none; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12px; color: #EDEBE8">
+          <button style="height: 32px; padding: 0 12px; border-radius: 6px; background: #2D3138; font-size: 12.5px; color: #EDEBE8">Browse…</button>
+        </span>
+      </label>
+      <div style="display: flex; align-items: center; gap: 10px; margin-top: 18px; padding: 10px 12px; border-radius: 8px; background: #23262C; font-size: 12.5px">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="#8FC0A6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>
+        <span>Git 2.51.0 found</span>
+        <span style="font-family: 'JetBrains Mono', Consolas, monospace; font-size: 11.5px; color: #8B929D">C:\Program Files\Git\cmd\git.exe</span>
+      </div>
+    </div>
+    <div style="height: 64px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 20px 0 36px; border-top: 1px solid #2B2F36; background: #1A1C20">
+      <a href="#" style="font-size: 12.5px; text-decoration: none">License (MIT) and privacy</a>
+      <span style="flex: 1"></span>
+      <button style="height: 32px; padding: 0 16px; border-radius: 6px; background: #2D3138; font-size: 13px">Cancel</button>
+      <button style="height: 32px; padding: 0 18px; border-radius: 6px; background: #9B83C9; color: #17191D; font-weight: 600; font-size: 13px">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 2 · Options ═══ -->
+<div style="display: flex; flex-direction: column; gap: 12px">
+  <div style="font-size: 12px; color: #8B929D"><span style="color: #EDEBE8; font-weight: 600">2 · Options</span> — every system change is named, and reversible from Settings</div>
+  <div style="width: 720px; height: 480px; display: flex; flex-direction: column; border-radius: 10px; background: #1D2025; border: 1px solid #2E3239; box-shadow: 0 24px 60px rgba(0,0,0,0.5); overflow: hidden">
+    <div style="height: 40px; flex: none; display: flex; align-items: center; gap: 10px; padding-left: 14px; background: #17191D">
+      <svg width="16" height="16" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M4 2.5v9M4 8.5c0-3 6-2 6-5" stroke="#9B83C9" stroke-width="1.6" stroke-linecap="round"></path><circle cx="10" cy="3.5" r="1.9" fill="#D98A57"></circle><circle cx="4" cy="11.5" r="1.9" fill="#9B83C9"></circle></svg>
+      <span style="font-size: 12px; color: #ADB1B9">CentralGit Setup</span>
+      <span style="flex: 1"></span>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: #8B929D; margin-right: 8px">
+        <span style="color: #8FC0A6">Location</span><span style="width: 18px; height: 1px; background: #3A3F47"></span><span style="color: #EDEBE8">Options</span><span style="width: 18px; height: 1px; background: #3A3F47"></span><span>Install</span>
+      </div>
+      <button aria-label="Close setup" style="width: 46px; height: 40px; display: flex; align-items: center; justify-content: center; color: #ADB1B9"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M0 0l10 10M10 0 0 10" stroke="currentColor"></path></svg></button>
+    </div>
+    <div style="flex: 1; padding: 28px 36px 0; display: flex; flex-direction: column">
+      <h1 style="margin: 0; font-size: 20px; font-weight: 600">Set up Windows integration</h1>
+      <div style="display: flex; flex-direction: column; margin-top: 16px; border-radius: 8px; background: #23262C">
+        <sc-for list="{{options}}" as="o" hint-placeholder-count="5">
+          <div style="display: flex; gap: 12px; padding: 11px 14px; border-bottom: 1px solid #1D2025">
+            <button role="checkbox" aria-checked="{{o.on}}" aria-label="{{o.label}}" style="width: 16px; height: 16px; flex: none; box-sizing: border-box; border-radius: 4px; display: flex; align-items: center; justify-content: center; margin-top: 1px; {{o.box}}"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="#17191D" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg></button>
+            <span style="display: flex; flex-direction: column; gap: 2px"><span>{{o.label}}</span><span style="font-size: 12px; color: #8B929D">{{o.help}}</span></span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; margin-top: 14px">
+        <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span>Updates</span><span style="font-size: 12px; color: #8B929D">Signed packages only · never while an operation is running</span></span>
+        <button style="display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 6px; background: #2A2E35; font-size: 12.5px">Automatic · Stable channel
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l4 4 4-4"></path></svg>
+        </button>
+      </div>
+    </div>
+    <div style="height: 64px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 20px 0 36px; border-top: 1px solid #2B2F36; background: #1A1C20">
+      <span style="font-size: 12px; color: #8B929D">Your Git config is only changed where noted</span>
+      <span style="flex: 1"></span>
+      <button style="height: 32px; padding: 0 16px; border-radius: 6px; background: #2D3138; font-size: 13px">Back</button>
+      <button style="height: 32px; padding: 0 18px; border-radius: 6px; background: #9B83C9; color: #17191D; font-weight: 600; font-size: 13px">Install</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 3 · Installing ═══ -->
+<div style="display: flex; flex-direction: column; gap: 12px">
+  <div style="font-size: 12px; color: #8B929D"><span style="color: #EDEBE8; font-weight: 600">3 · Installing</span> — real steps, not a fake bar; details are one click away</div>
+  <div style="width: 720px; height: 480px; display: flex; flex-direction: column; border-radius: 10px; background: #1D2025; border: 1px solid #2E3239; box-shadow: 0 24px 60px rgba(0,0,0,0.5); overflow: hidden">
+    <div style="height: 40px; flex: none; display: flex; align-items: center; gap: 10px; padding-left: 14px; background: #17191D">
+      <svg width="16" height="16" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M4 2.5v9M4 8.5c0-3 6-2 6-5" stroke="#9B83C9" stroke-width="1.6" stroke-linecap="round"></path><circle cx="10" cy="3.5" r="1.9" fill="#D98A57"></circle><circle cx="4" cy="11.5" r="1.9" fill="#9B83C9"></circle></svg>
+      <span style="font-size: 12px; color: #ADB1B9">CentralGit Setup</span>
+      <span style="flex: 1"></span>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: #8B929D; margin-right: 8px">
+        <span style="color: #8FC0A6">Location</span><span style="width: 18px; height: 1px; background: #3A3F47"></span><span style="color: #8FC0A6">Options</span><span style="width: 18px; height: 1px; background: #3A3F47"></span><span style="color: #EDEBE8">Install</span>
+      </div>
+      <button aria-label="Close setup" style="width: 46px; height: 40px; display: flex; align-items: center; justify-content: center; color: #5A606B"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M0 0l10 10M10 0 0 10" stroke="currentColor"></path></svg></button>
+    </div>
+    <div style="flex: 1; padding: 28px 36px 0; display: flex; flex-direction: column">
+      <h1 style="margin: 0; font-size: 20px; font-weight: 600">Installing…</h1>
+      <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 18px">
+        <span style="font-size: 13px">Registering Explorer integration</span>
+        <span style="flex: 1"></span>
+        <span style="font-size: 12px; color: #8B929D">64% · about 10 seconds left</span>
+      </div>
+      <div aria-hidden="true" style="height: 6px; border-radius: 3px; background: #2E3239; margin-top: 10px; display: flex"><span style="width: 64%; border-radius: 3px; background: #9B83C9"></span></div>
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 22px; font-size: 12.5px">
+        <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span style="width: 16px; height: 16px; flex: none; box-sizing: border-box; border-radius: 50%; display: flex; align-items: center; justify-content: center; {{s.icon}}"><span style="font-size: 10px; line-height: 1; {{s.glyphStyle}}">{{s.glyph}}</span></span>
+            <span style="{{s.labelStyle}}">{{s.label}}</span>
+            <span style="font-size: 11.5px; color: #8B929D">{{s.meta}}</span>
+          </div>
+        </sc-for>
+      </div>
+      <pre style="margin: 18px 0 0; padding: 10px 12px; border-radius: 6px; background: #17191D; font-family: 'JetBrains Mono', 'Cascadia Mono', Consolas, monospace; font-size: 11px; line-height: 16px; color: #8B929D; overflow: hidden">signature  CN=CentralGit, SHA256 7f3c…a91e  <span style="color: #8FC0A6">valid</span>
+copy       412 files → …\Programs\CentralGit\app-0.9.0
+registry   HKCU\Software\Classes\Directory\shell\CentralGit</pre>
+    </div>
+    <div style="height: 64px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 20px 0 36px; border-top: 1px solid #2B2F36; background: #1A1C20">
+      <button style="font-size: 12.5px; color: #ADB1B9">Hide details</button>
+      <span style="flex: 1"></span>
+      <button style="height: 32px; padding: 0 16px; border-radius: 6px; background: #2D3138; font-size: 13px">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 4 · Finish + first run ═══ -->
+<div style="display: flex; flex-direction: column; gap: 12px">
+  <div style="font-size: 12px; color: #8B929D"><span style="color: #EDEBE8; font-weight: 600">4 · Finish</span> — pick the repos folder here so the switcher works on first launch</div>
+  <div style="width: 720px; height: 480px; display: flex; flex-direction: column; border-radius: 10px; background: #1D2025; border: 1px solid #2E3239; box-shadow: 0 24px 60px rgba(0,0,0,0.5); overflow: hidden">
+    <div style="height: 40px; flex: none; display: flex; align-items: center; gap: 10px; padding-left: 14px; background: #17191D">
+      <svg width="16" height="16" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M4 2.5v9M4 8.5c0-3 6-2 6-5" stroke="#9B83C9" stroke-width="1.6" stroke-linecap="round"></path><circle cx="10" cy="3.5" r="1.9" fill="#D98A57"></circle><circle cx="4" cy="11.5" r="1.9" fill="#9B83C9"></circle></svg>
+      <span style="font-size: 12px; color: #ADB1B9">CentralGit Setup</span>
+      <span style="flex: 1"></span>
+      <button aria-label="Close setup" style="width: 46px; height: 40px; display: flex; align-items: center; justify-content: center; color: #ADB1B9"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M0 0l10 10M10 0 0 10" stroke="currentColor"></path></svg></button>
+    </div>
+    <div style="flex: 1; padding: 26px 36px 0; display: flex; flex-direction: column">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span style="width: 26px; height: 26px; border-radius: 50%; background: rgba(120,173,145,0.18); display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#8FC0A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg></span>
+        <h1 style="margin: 0; font-size: 20px; font-weight: 600">CentralGit is installed</h1>
+      </div>
+      <h2 style="margin: 22px 0 0; font-size: 14px; font-weight: 600">Where do you keep your repositories?</h2>
+      <p style="margin: 4px 0 0; font-size: 12.5px; color: #ADB1B9">CentralGit scans this folder and lists every repository in the switcher. Add more folders later in Settings › Repositories.</p>
+      <div style="display: flex; gap: 8px; margin-top: 12px">
+        <input aria-label="Repositories folder" value="D:\Source\Repos" style="flex: 1; height: 34px; padding: 0 10px; border-radius: 6px; background: #23262C; border: 1px solid rgba(155,131,201,0.55); outline: none; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12.5px; color: #EDEBE8">
+        <button style="height: 34px; padding: 0 12px; border-radius: 6px; background: #2D3138; font-size: 12.5px">Browse…</button>
+      </div>
+      <div style="margin-top: 10px; padding: 10px 12px; border-radius: 8px; background: #23262C">
+        <div style="font-size: 12.5px"><span style="color: #8FC0A6">14 repositories found</span> <span style="color: #8B929D">· scanned 3 levels deep in 0.4 s</span></div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px">
+          <sc-for list="{{found}}" as="f" hint-placeholder-count="6">
+            <span style="height: 22px; display: inline-flex; align-items: center; padding: 0 8px; border-radius: 4px; background: #2D3138; font-size: 12px; color: #CDD0D6">{{f}}</span>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 12.5px">
+        <button role="checkbox" aria-checked="true" aria-label="Use identity from .gitconfig" style="width: 16px; height: 16px; box-sizing: border-box; border-radius: 4px; background: #9B83C9; display: flex; align-items: center; justify-content: center"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="#17191D" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg></button>
+        <span>Commit as <span style="color: #EDEBE8">Mara Lindqvist</span> <span style="color: #8B929D">&lt;mara@atlas-billing.dev&gt; — found in .gitconfig</span></span>
+      </div>
+    </div>
+    <div style="height: 64px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 20px 0 36px; border-top: 1px solid #2B2F36; background: #1A1C20">
+      <button style="font-size: 12.5px; color: #ADB1B9">Skip for now</button>
+      <span style="flex: 1"></span>
+      <button style="height: 32px; padding: 0 18px; border-radius: 6px; background: #9B83C9; color: #17191D; font-weight: 600; font-size: 13px">Launch CentralGit</button>
+    </div>
+  </div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var options = [
+      ['Add “Open in CentralGit” to the Explorer folder menu', 'Right-click any folder or repository', true],
+      ['Add the cgit command to PATH', 'cgit . opens the current folder · cgit log, cgit diff jump straight to a view', true],
+      ['Start menu shortcut', 'Desktop shortcut can be added later', true],
+      ['Use CentralGit as Git difftool and mergetool', 'Writes diff.tool and merge.tool to your global .gitconfig', false]
+    ].map(function (o) {
+      return { label: o[0], help: o[1], on: o[2] ? 'true' : 'false', box: o[2] ? 'background: #9B83C9' : 'border: 1.5px solid #5A606B' };
+    });
+    var S = {
+      done: ['background: rgba(120,173,145,0.2)', '✓', 'color: #8FC0A6', 'color: #ADB1B9'],
+      now: ['border: 2px solid #9B83C9', '', '', 'color: #EDEBE8; font-weight: 600'],
+      next: ['border: 1.5px solid #3A3F47', '', '', 'color: #8B929D']
+    };
+    var steps = [
+      ['done', 'Verified package signature', 'CentralGit · Authenticode'],
+      ['done', 'Copied application files', '412 files · 182 MB'],
+      ['now', 'Registering Explorer integration', ''],
+      ['next', 'Adding cgit to PATH', ''],
+      ['next', 'Creating Start menu shortcut', '']
+    ].map(function (s) {
+      var x = S[s[0]];
+      return { icon: x[0], glyph: x[1], glyphStyle: x[2], labelStyle: x[3], label: s[1], meta: s[2] };
+    });
+    var found = ['atlas-billing', 'pricing-engine', 'identity-service', 'customer-portal', 'marketing-site', 'dotfiles', '+ 8 more'];
+    return { options: options, steps: steps, found: found };
+  }
+}
+</script>
+</body>
+</html>

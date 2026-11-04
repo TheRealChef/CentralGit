@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CentralGit.App/CentralGit.App.csproj" />
+    <Project Path="src/CentralGit.Core/CentralGit.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CentralGit.Core.Tests/CentralGit.Core.Tests.csproj" />
+  </Folder>
+</Solution>

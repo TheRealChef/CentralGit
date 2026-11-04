@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CentralGit — Settings, Accounts</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#101114}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:default}
+input{font:inherit;color:inherit}
+input::placeholder{color:#8B929D}
+a{color:#B9A6DE}a:hover{color:#D3C6EE}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1000px; display: flex; flex-direction: column; background: #1D2025; color: #EDEBE8; font-family: 'Segoe UI Variable Text', 'Segoe UI', Inter, system-ui, sans-serif; font-size: 13px; overflow: hidden">
+
+<!-- Title bar -->
+<header style="height: 44px; flex: none; display: flex; align-items: center; background: #17191D; border-bottom: 1px solid #0F1013; padding-left: 12px">
+  <div aria-hidden="true" style="width: 22px; height: 22px; border-radius: 6px; background: #2A2E35; display: flex; align-items: center; justify-content: center; margin-right: 10px">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 2.5v9M4 8.5c0-3 6-2 6-5" stroke="#9B83C9" stroke-width="1.6" stroke-linecap="round"></path><circle cx="10" cy="3.5" r="1.9" fill="#D98A57"></circle><circle cx="4" cy="11.5" r="1.9" fill="#9B83C9"></circle></svg>
+  </div>
+  <a href="Main.dc.html" style="display: flex; align-items: center; gap: 7px; height: 30px; padding: 0 10px 0 6px; border-radius: 6px; color: #ADB1B9; text-decoration: none; font-size: 12.5px">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 8H3M7 4 3 8l4 4"></path></svg>Back to atlas-billing
+    <span style="font-size: 10.5px; color: #8B929D; padding: 1px 5px; border-radius: 3px; background: #23262C">Esc</span>
+  </a>
+  <span aria-hidden="true" style="color: #4B515B; margin: 0 8px">/</span>
+  <span style="font-weight: 600">Settings</span>
+  <span style="flex: 1"></span>
+  <button aria-label="Minimize" style="width: 46px; height: 44px; display: flex; align-items: center; justify-content: center; color: #ADB1B9"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M0 5h10" stroke="currentColor"></path></svg></button>
+  <button aria-label="Maximize" style="width: 46px; height: 44px; display: flex; align-items: center; justify-content: center; color: #ADB1B9"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><rect x="0.5" y="0.5" width="9" height="9" rx="1.5" stroke="currentColor"></rect></svg></button>
+  <button aria-label="Close" style="width: 46px; height: 44px; display: flex; align-items: center; justify-content: center; color: #ADB1B9"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M0 0l10 10M10 0 0 10" stroke="currentColor"></path></svg></button>
+</header>
+
+<div style="flex: 1; min-height: 0; display: flex">
+  <!-- Settings nav -->
+  <nav aria-label="Settings sections" style="width: 260px; flex: none; display: flex; flex-direction: column; gap: 1px; padding: 14px 10px; box-sizing: border-box; border-right: 1px solid #0F1013">
+    <label style="display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px; margin-bottom: 12px; border-radius: 6px; background: #23262C; border: 1px solid #2E3239; color: #8B929D">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="4.5"></circle><path d="M10.5 10.5 14 14"></path></svg>
+      <input aria-label="Search settings" placeholder="Search settings" style="flex: 1; min-width: 0; background: transparent; border: 0; outline: none; font-size: 12.5px">
+    </label>
+    <sc-for list="{{nav}}" as="n" hint-placeholder-count="8">
+      <a href="{{n.href}}" style="display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 10px; border-radius: 6px; text-decoration: none; {{n.style}}">
+        <span style="width: 6px; height: 6px; border-radius: 50%; flex: none; {{n.dot}}"></span>
+        <span style="flex: 1">{{n.label}}</span>
+        <span style="font-size: 11.5px; {{n.badgeStyle}}">{{n.badge}}</span>
+      </a>
+    </sc-for>
+    <span style="flex: 1"></span>
+    <div style="padding: 10px; font-size: 11.5px; line-height: 17px; color: #8B929D">CentralGit 0.9.0 · stable<br>git 2.51.0 · Git Credential Manager 2.6</div>
+  </nav>
+
+  <!-- Content -->
+  <main style="flex: 1; min-width: 0; background: #23262C; padding: 32px 40px 0; box-sizing: border-box; overflow: hidden">
+    <h1 style="margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em">Accounts</h1>
+    <p style="margin: 6px 0 0; max-width: 760px; font-size: 13px; line-height: 19px; color: #ADB1B9">Sign-ins used for fetch, pull and push, and the identity written into your commits. Tokens are held by Git Credential Manager in Windows Credential Manager — CentralGit never stores them itself.</p>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) 440px; gap: 32px; margin-top: 26px">
+      <!-- left column -->
+      <div style="display: flex; flex-direction: column; gap: 26px; min-width: 0">
+        <section aria-labelledby="h-hosts">
+          <div style="display: flex; align-items: center; margin-bottom: 10px">
+            <h2 id="h-hosts" style="margin: 0; font-size: 13px; font-weight: 600; flex: 1">Hosting accounts</h2>
+            <button style="display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 6px; background: #9B83C9; color: #17191D; font-size: 12.5px; font-weight: 600">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>Add account
+            </button>
+          </div>
+          <div style="border-radius: 10px; background: #1D2025; overflow: hidden">
+            <sc-for list="{{accounts}}" as="ac" hint-placeholder-count="3">
+              <div style="display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 14px 16px; border-bottom: 1px solid #23262C">
+                <span aria-hidden="true" style="width: 36px; height: 36px; border-radius: 8px; background: #2D3138; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #CDD0D6">{{ac.mono}}</span>
+                <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0">
+                  <div style="display: flex; align-items: baseline; gap: 8px"><span style="font-weight: 600">{{ac.provider}}</span><span style="font-size: 12px; color: #8B929D">{{ac.host}}</span></div>
+                  <div style="font-size: 12.5px; color: #ADB1B9">{{ac.user}} <span style="color: #8B929D">· {{ac.method}} · {{ac.usage}}</span></div>
+                  <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; {{ac.stateStyle}}"><span style="width: 6px; height: 6px; border-radius: 50%; {{ac.dot}}"></span>{{ac.state}}</div>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center">
+                  <button style="height: 28px; padding: 0 10px; border-radius: 6px; font-size: 12.5px; {{ac.actionStyle}}">{{ac.action}}</button>
+                  <button aria-label="More account actions" style="width: 28px; height: 28px; border-radius: 6px; color: #ADB1B9; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="3.5" cy="8" r="1.2"></circle><circle cx="8" cy="8" r="1.2"></circle><circle cx="12.5" cy="8" r="1.2"></circle></svg></button>
+                </div>
+              </div>
+            </sc-for>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; font-size: 12px; color: #8B929D">
+              <span style="margin-right: 4px">Connect:</span>
+              <button style="height: 24px; padding: 0 9px; border-radius: 5px; background: #2A2E35; color: #ADB1B9; font-size: 12px">GitHub</button>
+              <button style="height: 24px; padding: 0 9px; border-radius: 5px; background: #2A2E35; color: #ADB1B9; font-size: 12px">GitLab</button>
+              <button style="height: 24px; padding: 0 9px; border-radius: 5px; background: #2A2E35; color: #ADB1B9; font-size: 12px">Azure DevOps</button>
+              <button style="height: 24px; padding: 0 9px; border-radius: 5px; background: #2A2E35; color: #ADB1B9; font-size: 12px">Bitbucket</button>
+              <button style="height: 24px; padding: 0 9px; border-radius: 5px; background: #2A2E35; color: #ADB1B9; font-size: 12px">Other HTTPS host…</button>
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="h-identity">
+          <h2 id="h-identity" style="margin: 0 0 10px; font-size: 13px; font-weight: 600">Commit identity</h2>
+          <div style="border-radius: 10px; background: #1D2025; padding: 16px">
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+              <label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #ADB1B9">Name
+                <input value="Mara Lindqvist" style="height: 32px; padding: 0 10px; border-radius: 6px; background: #23262C; border: 1px solid #2E3239; outline: none; font-size: 13px; color: #EDEBE8">
+              </label>
+              <label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #ADB1B9">Email
+                <input value="mara@atlas-billing.dev" style="height: 32px; padding: 0 10px; border-radius: 6px; background: #23262C; border: 1px solid #2E3239; outline: none; font-size: 13px; color: #EDEBE8">
+              </label>
+            </div>
+            <div style="margin-top: 8px; font-size: 11.5px; color: #8B929D">Saved as <span style="font-family: 'JetBrains Mono', Consolas, monospace">user.name</span> / <span style="font-family: 'JetBrains Mono', Consolas, monospace">user.email</span> in <span style="font-family: 'JetBrains Mono', Consolas, monospace">%USERPROFILE%\.gitconfig</span></div>
+
+            <div style="height: 1px; background: #2B2F36; margin: 16px -16px 14px"></div>
+            <div style="display: flex; align-items: center; margin-bottom: 8px">
+              <span style="flex: 1; font-size: 12.5px; font-weight: 600">Folder overrides</span>
+              <button style="font-size: 12.5px; color: #B9A6DE">Add rule…</button>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 16px minmax(0, 1fr) 28px; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 6px; background: #23262C; font-size: 12.5px">
+              <span style="font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">D:\Source\Repos\oss\</span>
+              <span aria-hidden="true" style="color: #8B929D">→</span>
+              <span style="color: #ADB1B9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">mara-l@users.noreply.github.com</span>
+              <button aria-label="Remove rule" style="color: #8B929D; display: flex; justify-content: center"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg></button>
+            </div>
+            <div style="margin-top: 8px; font-size: 11.5px; color: #8B929D">Uses Git <span style="font-family: 'JetBrains Mono', Consolas, monospace">includeIf "gitdir:…"</span> — the same rules work from the command line.</div>
+          </div>
+        </section>
+      </div>
+
+      <!-- right column -->
+      <div style="display: flex; flex-direction: column; gap: 26px">
+        <section aria-labelledby="h-sign">
+          <h2 id="h-sign" style="margin: 0 0 10px; font-size: 13px; font-weight: 600">Commit signing</h2>
+          <div style="border-radius: 10px; background: #1D2025">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #23262C">
+              <span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span>Sign commits by default</span><span style="font-size: 12px; color: #8B929D">Can be turned off per commit in the composer</span></span>
+              <button role="switch" aria-checked="true" aria-label="Sign commits by default" style="width: 36px; height: 20px; border-radius: 10px; background: #9B83C9; display: flex; justify-content: flex-end; padding: 3px; box-sizing: border-box"><span style="width: 14px; height: 14px; border-radius: 50%; background: #17191D"></span></button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #23262C">
+              <span style="flex: 1">Method</span>
+              <div role="group" aria-label="Signing method" style="display: flex; padding: 2px; gap: 2px; border-radius: 6px; background: #17191D">
+                <button style="height: 24px; padding: 0 12px; border-radius: 4px; background: #363B43; font-size: 12px">SSH</button>
+                <button style="height: 24px; padding: 0 12px; border-radius: 4px; color: #ADB1B9; font-size: 12px">GPG</button>
+                <button style="height: 24px; padding: 0 12px; border-radius: 4px; color: #ADB1B9; font-size: 12px">X.509</button>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 16px">
+              <div style="display: flex; align-items: center; gap: 10px">
+                <span style="flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12px">~/.ssh/id_ed25519.pub</span><span style="font-size: 11.5px; color: #8B929D">ED25519 · SHA256:q3Lx…Fz8</span></span>
+                <button style="height: 28px; padding: 0 10px; border-radius: 6px; background: #2D3138; font-size: 12.5px">Change…</button>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #8FC0A6">
+                <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>
+                Test signature succeeded · key is loaded in the OpenSSH agent
+              </div>
+              <div style="font-size: 11.5px; color: #8B929D">Same key is registered as a signing key on GitHub, so commits show as Verified there.</div>
+            </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="h-ssh">
+          <div style="display: flex; align-items: center; margin-bottom: 10px">
+            <h2 id="h-ssh" style="margin: 0; font-size: 13px; font-weight: 600; flex: 1">SSH keys</h2>
+            <button style="font-size: 12.5px; color: #B9A6DE">Generate key…</button>
+          </div>
+          <div style="border-radius: 10px; background: #1D2025; overflow: hidden">
+            <sc-for list="{{keys}}" as="k" hint-placeholder-count="2">
+              <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #23262C">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#ADB1B9" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="5.5" cy="10.5" r="3"></circle><path d="M7.7 8.3 13.5 2.5M11 5l2 2M12.5 3.5l1.5 1.5"></path></svg>
+                <span style="flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12px">{{k.name}}</span><span style="font-size: 11.5px; color: #8B929D">{{k.meta}}</span></span>
+                <span style="font-size: 12px; {{k.stateStyle}}">{{k.state}}</span>
+              </div>
+            </sc-for>
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px">
+              <span style="flex: 1; font-size: 12.5px">SSH client</span>
+              <button style="display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 6px; background: #2A2E35; font-size: 12.5px">Windows OpenSSH
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l4 4 4-4"></path></svg>
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var nav = [
+      ['General', '', '#'], ['Accounts', '1', 'SettingsAccounts.dc.html', true], ['Repositories', '', 'SettingsRepositories.dc.html'],
+      ['Appearance', '', '#'], ['Diff & editor', '', '#'], ['Keyboard', '', '#'], ['Operations', '', '#'], ['Advanced', '', '#']
+    ].map(function (n) {
+      return { label: n[0], badge: n[1], href: n[2],
+        style: n[3] ? 'background: #2A2E35; color: #EDEBE8; font-weight: 600' : 'color: #ADB1B9',
+        dot: n[3] ? 'background: #9B83C9' : 'background: transparent',
+        badgeStyle: 'color: #DE8C87; font-weight: 400' };
+    });
+    var st = {
+      ok: ['color: #8FC0A6', 'background: #78AD91', 'background: #2D3138; color: #EDEBE8'],
+      warn: ['color: #E2A57E', 'background: #D98A57', 'background: rgba(217,138,87,0.16); color: #E8B08A'],
+      err: ['color: #DE8C87', 'background: #D46F6A', 'background: #D98A57; color: #17191D; font-weight: 600']
+    };
+    var accounts = [
+      ['GH', 'GitHub', 'github.com', 'mara-lindqvist', 'Browser sign-in (OAuth)', 'used by 9 repositories', 'Connected · token refreshed automatically', 'ok', 'Test'],
+      ['AZ', 'Azure DevOps', 'dev.azure.com/atlas-billing', 'mara@atlas-billing.dev', 'Personal access token', 'used by 4 repositories', 'Token expires in 12 days (16 Nov 2026)', 'warn', 'Renew…'],
+      ['GL', 'GitLab, self-hosted', 'git.internal.atlas.dev', 'mlindqvist', 'Personal access token', 'used by 1 repository', 'Last fetch failed · 401 Unauthorized · today 09:12', 'err', 'Sign in again']
+    ].map(function (a) {
+      var s = st[a[7]];
+      return { mono: a[0], provider: a[1], host: a[2], user: a[3], method: a[4], usage: a[5], state: a[6], action: a[8],
+        stateStyle: s[0], dot: s[1], actionStyle: s[2] };
+    });
+    var keys = [
+      { name: 'id_ed25519', meta: 'ED25519 · created Mar 2025 · auth + signing', state: 'In agent', stateStyle: 'color: #8FC0A6' },
+      { name: 'id_rsa_legacy', meta: 'RSA 4096 · created 2021 · git.internal only', state: 'Not loaded', stateStyle: 'color: #8B929D' }
+    ];
+    return { nav: nav, accounts: accounts, keys: keys };
+  }
+}
+</script>
+</body>
+</html>
