@@ -18,6 +18,31 @@ public static class Palette
     public static readonly Color VioletText = Hex(0xB9A6DE);
     public static readonly Color OrangeText = Hex(0xE2A57E);
     public static readonly Color Transparent = Color.FromArgb(0, 0, 0, 0);
+    public static readonly Color Green = Hex(0x78AD91);
+    public static readonly Color GreenText = Hex(0x8FC0A6);
+    public static readonly Color Red = Hex(0xD46F6A);
+    public static readonly Color RedText = Hex(0xDE8C87);
+    public static readonly Color Info = Hex(0x8EA3BF);
+    public static readonly Color Raised = Hex(0x2A2E35);
+
+    // Diff: whole-line tint, plus a stronger tint for the exact characters that changed.
+    public static readonly Color AddedLine = WithAlpha(Green, 0.10);
+    public static readonly Color AddedGutter = WithAlpha(Green, 0.16);
+    public static readonly Color AddedChange = WithAlpha(Green, 0.28);
+    public static readonly Color DeletedLine = WithAlpha(Red, 0.10);
+    public static readonly Color DeletedGutter = WithAlpha(Red, 0.16);
+    public static readonly Color DeletedChange = WithAlpha(Red, 0.30);
+    public static readonly Color Filler = Hex(0x1E2126);
+
+    // Syntax: quiet, warm-neutral; never competes with the meaning accents.
+    public static readonly Color SyntaxPlain = Hex(0xD9D6D0);
+    public static readonly Color SyntaxKeyword = Hex(0xB9A6DE);
+    public static readonly Color SyntaxType = Hex(0x9DB3CF);
+    public static readonly Color SyntaxString = Hex(0xC4B48F);
+    public static readonly Color SyntaxComment = Hex(0x7D848F);
+    public static readonly Color SyntaxNumber = Hex(0xC9A98B);
+    public static readonly Color SyntaxFunction = Hex(0xE6E1D8);
+    public static readonly Color SyntaxPunctuation = Hex(0x9EA4AE);
 
     /// <summary>
     /// Lanes without a meaning get neutral slates; lane 0 is usually the trunk.

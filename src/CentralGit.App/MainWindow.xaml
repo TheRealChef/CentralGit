@@ -4,13 +4,83 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:vm="using:CentralGit.App.ViewModels"
     xmlns:graph="using:CentralGit.App.Graph"
+    xmlns:diff="using:CentralGit.App.Diff"
+    xmlns:controls="using:CentralGit.App.Controls"
     Title="CentralGit">
 
     <Grid x:Name="Root" Background="{StaticResource WindowBrush}" KeyboardAcceleratorPlacementMode="Hidden">
         <Grid.KeyboardAccelerators>
             <KeyboardAccelerator Key="K" Modifiers="Control" Invoked="OnCommandPaletteAccelerator" />
             <KeyboardAccelerator Key="F" Modifiers="Control" Invoked="OnFilterAccelerator" />
+            <KeyboardAccelerator Key="Escape" Invoked="OnEscapeAccelerator" />
+            <KeyboardAccelerator Key="Down" Modifiers="Menu" Invoked="OnNextChangeAccelerator" />
+            <KeyboardAccelerator Key="Up" Modifiers="Menu" Invoked="OnPreviousChangeAccelerator" />
         </Grid.KeyboardAccelerators>
+        <Grid.Resources>
+            <diff:DiffTemplateSelector x:Key="DiffRowSelector">
+                <diff:DiffTemplateSelector.SplitTemplate>
+                    <DataTemplate x:DataType="diff:DiffRowViewModel">
+                        <Grid Height="20">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="52" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="1" />
+                                <ColumnDefinition Width="52" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border><Border.Background><SolidColorBrush Color="{x:Bind LeftGutter}" /></Border.Background>
+                                <TextBlock Text="{x:Bind LeftNumber}" Style="{StaticResource LineNumberStyle}" />
+                            </Border>
+                            <Border Grid.Column="1"><Border.Background><SolidColorBrush Color="{x:Bind LeftBackground}" /></Border.Background>
+                                <TextBlock diff:CodeText.Line="{x:Bind Left}" Style="{StaticResource CodeStyle}" />
+                            </Border>
+                            <Rectangle Grid.Column="2" Fill="{StaticResource SeamBrush}" />
+                            <Border Grid.Column="3"><Border.Background><SolidColorBrush Color="{x:Bind RightGutter}" /></Border.Background>
+                                <TextBlock Text="{x:Bind RightNumber}" Style="{StaticResource LineNumberStyle}" />
+                            </Border>
+                            <Border Grid.Column="4"><Border.Background><SolidColorBrush Color="{x:Bind RightBackground}" /></Border.Background>
+                                <TextBlock diff:CodeText.Line="{x:Bind Right}" Style="{StaticResource CodeStyle}" />
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </diff:DiffTemplateSelector.SplitTemplate>
+                <diff:DiffTemplateSelector.UnifiedTemplate>
+                    <DataTemplate x:DataType="diff:DiffRowViewModel">
+                        <Grid Height="20">
+                            <Grid.Background><SolidColorBrush Color="{x:Bind LeftBackground}" /></Grid.Background>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="48" />
+                                <ColumnDefinition Width="48" />
+                                <ColumnDefinition Width="20" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.ColumnSpan="2"><Border.Background><SolidColorBrush Color="{x:Bind LeftGutter}" /></Border.Background></Border>
+                            <TextBlock Text="{x:Bind LeftNumber}" Style="{StaticResource LineNumberStyle}" />
+                            <TextBlock Grid.Column="1" Text="{x:Bind RightNumber}" Style="{StaticResource LineNumberStyle}" />
+                            <TextBlock Grid.Column="2" Text="{x:Bind Sign}" FontFamily="{StaticResource MonoFont}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock.Foreground><SolidColorBrush Color="{x:Bind SignColor}" /></TextBlock.Foreground>
+                            </TextBlock>
+                            <TextBlock Grid.Column="3" diff:CodeText.Line="{x:Bind Left}" Style="{StaticResource CodeStyle}" Padding="0" />
+                        </Grid>
+                    </DataTemplate>
+                </diff:DiffTemplateSelector.UnifiedTemplate>
+                <diff:DiffTemplateSelector.HunkTemplate>
+                    <DataTemplate x:DataType="diff:DiffRowViewModel">
+                        <Border Height="24" Background="#FF262A31" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,1">
+                            <TextBlock Text="{x:Bind Text}" FontFamily="{StaticResource MonoFont}" FontSize="11.5" Foreground="#FF8EA3BF"
+                                       VerticalAlignment="Center" Margin="14,0" TextTrimming="CharacterEllipsis" />
+                        </Border>
+                    </DataTemplate>
+                </diff:DiffTemplateSelector.HunkTemplate>
+                <diff:DiffTemplateSelector.GapTemplate>
+                    <DataTemplate x:DataType="diff:DiffRowViewModel">
+                        <Border Height="22" Background="#FF1E2126">
+                            <TextBlock Text="{x:Bind Text}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="14,0" />
+                        </Border>
+                    </DataTemplate>
+                </diff:DiffTemplateSelector.GapTemplate>
+            </diff:DiffTemplateSelector>
+        </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="48" />
             <RowDefinition Height="*" />
@@ -90,7 +160,7 @@
         <!-- ═══ Body ═══ -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="232" />
+                <ColumnDefinition x:Name="SidebarColumn" Width="232" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
@@ -173,8 +243,16 @@
                 </Button>
             </Grid>
 
+            <!-- Workspace: history above, inspector below; the split moves with the mode -->
+            <Grid x:Name="Workspace" Grid.Column="1" Background="{StaticResource SurfaceBrush}">
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="HistoryRow" Height="420" />
+                    <RowDefinition x:Name="SplitterRow" Height="6" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
             <!-- History -->
-            <Grid Grid.Column="1" Background="{StaticResource SurfaceBrush}">
+            <Grid x:Name="HistoryPane" Background="{StaticResource SurfaceBrush}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="44" />
                     <RowDefinition Height="24" />
@@ -208,7 +286,9 @@
                           SelectedItem="{x:Bind ViewModel.SelectedCommit, Mode=TwoWay}"
                           SelectionMode="Single"
                           ItemContainerStyle="{StaticResource CommitItemStyle}"
-                          AutomationProperties.Name="Commit history">
+                          AutomationProperties.Name="Commit history"
+                          DoubleTapped="OnHistoryDoubleTapped"
+                          PreviewKeyDown="OnHistoryPreviewKeyDown">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="vm:CommitRowViewModel">
                             <Grid Height="26" Padding="8,0,16,0">
@@ -248,6 +328,197 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
+            </Grid>
+
+            <controls:Splitter x:Name="HistorySplitter" Grid.Row="1" />
+
+            <!-- Inspector -->
+            <Grid x:Name="InspectorPane" Grid.Row="2" Background="{StaticResource WindowBrush}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="DetailsColumn" Width="360" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.ColumnSpan="2" Text="{x:Bind ViewModel.Inspector.EmptyText, Mode=OneWay}" Foreground="{StaticResource TextMutedBrush}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="600"
+                           Visibility="{x:Bind ViewModel.Inspector.HasNoDetails, Mode=OneWay}" />
+
+                <!-- Details -->
+                <Grid x:Name="DetailsPane" BorderBrush="{StaticResource SeamBrush}" BorderThickness="0,0,1,0"
+                      Visibility="{x:Bind ViewModel.Inspector.HasDetails, Mode=OneWay}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Padding="16,14,16,12" Spacing="10">
+                            <TextBlock Text="{x:Bind ViewModel.Inspector.Details.Subject, Mode=OneWay}" FontSize="15" FontWeight="SemiBold"
+                                       TextWrapping="Wrap" MaxLines="3" TextTrimming="CharacterEllipsis" IsTextSelectionEnabled="True"
+                                       Foreground="{StaticResource TextPrimaryBrush}" />
+                            <TextBlock Text="{x:Bind ViewModel.Inspector.Details.Body, Mode=OneWay}" FontSize="12.5" TextWrapping="Wrap"
+                                       IsTextSelectionEnabled="True" Foreground="{StaticResource TextSecondaryBrush}"
+                                       Visibility="{x:Bind ViewModel.Inspector.Details.HasBody, Mode=OneWay}" />
+
+                            <Grid ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="30" Height="30" CornerRadius="15" Background="{StaticResource ElevatedBrush}">
+                                    <TextBlock Text="{x:Bind ViewModel.Inspector.Details.AuthorInitials, Mode=OneWay}" FontSize="11.5" FontWeight="SemiBold"
+                                               Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                    <TextBlock FontSize="12.5" TextTrimming="CharacterEllipsis">
+                                        <Run Text="{x:Bind ViewModel.Inspector.Details.AuthorName, Mode=OneWay}" Foreground="{StaticResource TextPrimaryBrush}" />
+                                        <Run Text="{x:Bind ViewModel.Inspector.Details.AuthorEmail, Mode=OneWay}" Foreground="{StaticResource TextMutedBrush}" />
+                                    </TextBlock>
+                                    <TextBlock Text="{x:Bind ViewModel.Inspector.Details.AuthorDate, Mode=OneWay}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" />
+                                </StackPanel>
+                            </Grid>
+                            <TextBlock Text="{x:Bind ViewModel.Inspector.Details.CommitterLine, Mode=OneWay}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"
+                                       Visibility="{x:Bind ViewModel.Inspector.Details.HasCommitter, Mode=OneWay}" TextWrapping="Wrap" />
+
+                            <Grid RowSpacing="6" ColumnSpacing="10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="64" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Text="Commit" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                                    <TextBlock Text="{x:Bind ViewModel.Inspector.Details.ShortHash, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" FontSize="12"
+                                               Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" IsTextSelectionEnabled="True" />
+                                    <Button Style="{StaticResource GhostButtonStyle}" Padding="6,2" Click="OnCopyHash" ToolTipService.ToolTip="Copy full hash"
+                                            AutomationProperties.Name="Copy full hash">
+                                        <FontIcon Glyph="&#xE8C8;" FontSize="11" />
+                                    </Button>
+                                </StackPanel>
+
+                                <TextBlock Grid.Row="1" Text="{x:Bind ViewModel.Inspector.Details.ParentsLabel, Mode=OneWay}" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}"
+                                           VerticalAlignment="Center" TextWrapping="Wrap" />
+                                <ItemsControl Grid.Row="1" Grid.Column="1" ItemsSource="{x:Bind ViewModel.Inspector.Details.Parents, Mode=OneWay}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4" /></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:ParentViewModel">
+                                            <Button Style="{StaticResource GhostButtonStyle}" Padding="6,2" Tag="{x:Bind Hash}" Click="OnParentClick"
+                                                    Background="{StaticResource RaisedBrush}" ToolTipService.ToolTip="Go to parent">
+                                                <TextBlock Text="{x:Bind ShortHash}" FontFamily="{StaticResource MonoFont}" FontSize="12" />
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <TextBlock Grid.Row="2" Text="Signature" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{x:Bind ViewModel.Inspector.Details.SignatureText, Mode=OneWay}" FontSize="12"
+                                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center">
+                                    <TextBlock.Foreground><SolidColorBrush Color="{x:Bind ViewModel.Inspector.Details.SignatureColor, Mode=OneWay}" /></TextBlock.Foreground>
+                                </TextBlock>
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <Grid Grid.Row="1" Padding="16,6,16,6" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,1,0,0" ColumnSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{x:Bind ViewModel.Inspector.Details.FilesSummary, Mode=OneWay}" Style="{StaticResource SectionLabelStyle}" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.Inspector.Details.AddedText, Mode=OneWay}" FontSize="12" Foreground="{StaticResource GreenTextBrush}" />
+                        <TextBlock Grid.Column="2" Text="{x:Bind ViewModel.Inspector.Details.DeletedText, Mode=OneWay}" FontSize="12" Foreground="{StaticResource RedTextBrush}" />
+                    </Grid>
+
+                    <ListView x:Name="FileList" Grid.Row="2" Padding="0,0,0,8"
+                              ItemsSource="{x:Bind ViewModel.Inspector.Details.Files, Mode=OneWay}"
+                              SelectedItem="{x:Bind ViewModel.Inspector.SelectedFile, Mode=TwoWay}"
+                              SelectionMode="Single" ItemContainerStyle="{StaticResource FileItemStyle}"
+                              AutomationProperties.Name="Changed files">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ChangedFileViewModel">
+                                <Grid Padding="10,0" ColumnSpacing="8" ToolTipService.ToolTip="{x:Bind Model.Path}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="14" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{x:Bind Letter}" FontFamily="{StaticResource MonoFont}" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center">
+                                        <TextBlock.Foreground><SolidColorBrush Color="{x:Bind LetterColor}" /></TextBlock.Foreground>
+                                    </TextBlock>
+                                    <TextBlock Grid.Column="1" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" FontSize="12.5">
+                                        <Run Text="{x:Bind FileName}" Foreground="{StaticResource TextPrimaryBrush}" />
+                                        <Run Text="{x:Bind Directory}" Foreground="{StaticResource TextMutedBrush}" FontSize="11.5" />
+                                    </TextBlock>
+                                    <TextBlock Grid.Column="2" Text="{x:Bind AddedText}" FontSize="11.5" Foreground="{StaticResource GreenTextBrush}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="3" Text="{x:Bind DeletedText}" FontSize="11.5" Foreground="{StaticResource RedTextBrush}" VerticalAlignment="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+
+                <!-- Diff -->
+                <Grid x:Name="DiffPane" Grid.Column="1" Background="{StaticResource SurfaceBrush}" Visibility="{x:Bind ViewModel.Inspector.HasDetails, Mode=OneWay}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="40" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Padding="14,0,8,0" ColumnSpacing="10" BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,0,0,1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+                            <Run x:Name="FocusCommitRun" FontFamily="{StaticResource MonoFont}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                            <Run Text="{x:Bind ViewModel.Inspector.DiffTitle, Mode=OneWay}" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" />
+                            <Run Text="{x:Bind ViewModel.Inspector.DiffDirectory, Mode=OneWay}" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                        </TextBlock>
+
+                        <TextBlock Grid.Column="1" Text="{x:Bind ViewModel.Inspector.ChangePosition, Mode=OneWay}" FontSize="11.5"
+                                   Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+                            <Button Style="{StaticResource GhostButtonStyle}" Padding="7,4" Click="OnPreviousChange" ToolTipService.ToolTip="Previous change (Alt+Up)"
+                                    AutomationProperties.Name="Previous change"><FontIcon Glyph="&#xE70E;" FontSize="11" /></Button>
+                            <Button Style="{StaticResource GhostButtonStyle}" Padding="7,4" Click="OnNextChange" ToolTipService.ToolTip="Next change (Alt+Down)"
+                                    AutomationProperties.Name="Next change"><FontIcon Glyph="&#xE70D;" FontSize="11" /></Button>
+                        </StackPanel>
+                        <Border Grid.Column="3" Background="{StaticResource DeepBrush}" CornerRadius="7" Padding="2" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="2">
+                                <Button x:Name="SplitButton" Style="{StaticResource GhostButtonStyle}" Padding="10,3" Click="OnSplitClick" Content="Split" FontSize="12" />
+                                <Button x:Name="UnifiedButton" Style="{StaticResource GhostButtonStyle}" Padding="10,3" Click="OnUnifiedClick" Content="Unified" FontSize="12" />
+                            </StackPanel>
+                        </Border>
+                        <Button x:Name="FocusButton" Grid.Column="4" Style="{StaticResource GhostButtonStyle}" Padding="8,5" Click="OnFocusClick"
+                                ToolTipService.ToolTip="Focus on the diff (Enter) · Esc to go back" AutomationProperties.Name="Focus on the diff">
+                            <FontIcon x:Name="FocusGlyph" Glyph="&#xE740;" FontSize="12" />
+                        </Button>
+                    </Grid>
+
+                    <ListView x:Name="DiffList" Grid.Row="1"
+                              ItemsSource="{x:Bind ViewModel.Inspector.DiffRows, Mode=OneWay}"
+                              ItemTemplateSelector="{StaticResource DiffRowSelector}"
+                              ItemContainerStyle="{StaticResource DiffItemStyle}"
+                              SelectionMode="None" IsItemClickEnabled="False"
+                              AutomationProperties.Name="Diff" />
+
+                    <TextBlock Grid.Row="1" Text="{x:Bind ViewModel.Inspector.DiffMessage, Mode=OneWay}" Foreground="{StaticResource TextMutedBrush}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{x:Bind ViewModel.Inspector.HasDiffMessage, Mode=OneWay}" />
+                </Grid>
+            </Grid>
             </Grid>
         </Grid>
 

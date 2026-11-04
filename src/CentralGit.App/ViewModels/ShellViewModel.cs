@@ -9,9 +9,15 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CentralGit.App.ViewModels;
 
+/// <summary>Browse: history first. Investigate: a commit in depth with a band of history. Focus: the diff alone.</summary>
+public enum WorkspaceMode { Browse, Investigate, Focus }
+
 public sealed partial class ShellViewModel : ObservableObject
 {
     private const int HistoryPageSize = 5000;
+
+    private Dictionary<string, CommitRowViewModel> _byHash = [];
+    private WorkspaceMode _mode;
 
     private GitRepository? _repository;
 
@@ -41,7 +47,30 @@ public sealed partial class ShellViewModel : ObservableObject
     public string CommitCountText { get => _commitCountText; private set => SetProperty(ref _commitCountText, value); }
     public string RepositoryHubText { get => _repositoryHubText; private set => SetProperty(ref _repositoryHubText, value); }
     public IReadOnlyList<CommitRowViewModel> Commits { get => _commits; private set => SetProperty(ref _commits, value); }
-    public CommitRowViewModel? SelectedCommit { get => _selectedCommit; set => SetProperty(ref _selectedCommit, value); }
+    public CommitRowViewModel? SelectedCommit
+    {
+        get => _selectedCommit;
+        set
+        {
+            if (SetProperty(ref _selectedCommit, value))
+                _ = Inspector.ShowCommitAsync(value?.Commit.Hash);
+        }
+    }
+
+    public InspectorViewModel Inspector { get; } = new();
+
+    public string? RepositoryPath => _repository?.Path;
+
+    public WorkspaceMode Mode { get => _mode; set => SetProperty(ref _mode, value); }
+
+    /// <summary>Selects the commit with this hash if it is loaded (parent links in the inspector).</summary>
+    public bool SelectCommit(string hash)
+    {
+        if (!_byHash.TryGetValue(hash, out var row))
+            return false;
+        SelectedCommit = row;
+        return true;
+    }
 
     public string StatusText { get => _statusText; private set => SetProperty(ref _statusText, value); }
     public bool StatusIsError { get => _statusIsError; private set => SetProperty(ref _statusIsError, value); }
@@ -87,6 +116,8 @@ public sealed partial class ShellViewModel : ObservableObject
         }
 
         _repository = new GitRepository(located.Selected);
+        Inspector.Attach(_repository);
+        Inspector.IsSplit = LayoutStore.Get(_repository.Path).SplitDiff;
         RepositoryName = _repository.Name;
         FetchCommand.NotifyCanExecuteChanged();
         await ReloadAsync();
@@ -118,8 +149,11 @@ public sealed partial class ShellViewModel : ObservableObject
             foreach (var b in (await branchesTask).OrderByDescending(b => b.IsHead).ThenBy(b => b.Name, StringComparer.OrdinalIgnoreCase))
                 Branches.Add(new BranchItemViewModel(b));
 
+            var previous = SelectedCommit?.Commit.Hash;
+            _byHash = rows.ToDictionary(r => r.Commit.Hash);
             Commits = rows;
-            SelectedCommit = rows.FirstOrDefault(r => r.IsHead) ?? rows.FirstOrDefault();
+            SelectedCommit = (previous is not null ? _byHash.GetValueOrDefault(previous) : null)
+                             ?? rows.FirstOrDefault(r => r.IsHead) ?? rows.FirstOrDefault();
             CommitCountText = rows.Count >= HistoryPageSize ? $"latest {rows.Count:N0} commits" : $"{rows.Count:N0} commits";
             SetStatus($"Loaded {rows.Count:N0} commits in {stopwatch.ElapsedMilliseconds:N0} ms", error: false);
         }
