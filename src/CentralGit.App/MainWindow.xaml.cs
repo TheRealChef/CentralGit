@@ -38,6 +38,8 @@ public sealed partial class MainWindow : Window
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
 
+        AppWindow.SetIcon(Path.Combine(AppContext.BaseDirectory, "Assets", "CentralGit.ico")); // taskbar, Alt+Tab
+
         var titleBar = AppWindow.TitleBar;
         titleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
         titleBar.ButtonBackgroundColor = Colors.Transparent;

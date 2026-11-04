@@ -97,13 +97,26 @@
             </Grid.ColumnDefinitions>
 
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="4" Padding="12,0,0,0">
-                <Border Width="22" Height="22" CornerRadius="6" Background="{StaticResource RaisedBrush}" Margin="0,0,8,0">
-                    <Canvas Width="14" Height="14">
-                        <Path Data="M4,2.5 L4,11.5 M4,8.5 C4,5.5 10,6.5 10,3.5" Stroke="{StaticResource VioletBrush}" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
-                        <Ellipse Canvas.Left="8.1" Canvas.Top="1.6" Width="3.8" Height="3.8" Fill="#FFD98A57" />
-                        <Ellipse Canvas.Left="2.1" Canvas.Top="9.6" Width="3.8" Height="3.8" Fill="{StaticResource VioletBrush}" />
+                <!-- App mark: Assets/AppIcon.svg geometry, cropped to the mark (the title bar is already the icon's #17191D) -->
+                <Viewbox Width="24" Height="24" Margin="0,0,8,0" AutomationProperties.Name="CentralGit">
+                    <Canvas Width="320" Height="320">
+                        <Canvas.RenderTransform><TranslateTransform X="-85" Y="-96" /></Canvas.RenderTransform>
+                        <Path Data="M354,158 C329,133 298,120 260,120 C185,120 126,180 126,256 C126,332 185,392 260,392 C298,392 329,379 354,354"
+                              Stroke="#FF9B83C9" StrokeThickness="32" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                        <Ellipse Canvas.Left="328" Canvas.Top="132" Width="52" Height="52" Fill="#FF9B83C9" />
+                        <Ellipse Canvas.Left="344" Canvas.Top="148" Width="20" Height="20" Fill="#FF17191D" />
+                        <Ellipse Canvas.Left="328" Canvas.Top="328" Width="52" Height="52" Fill="#FF9B83C9" />
+                        <Ellipse Canvas.Left="344" Canvas.Top="344" Width="20" Height="20" Fill="#FF17191D" />
+                        <Path Data="M236,196 L236,320" Stroke="#FF9B83C9" StrokeThickness="22" StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                        <Path Data="M236,284 C236,260 306,260 306,224 L306,206" Stroke="#FFD98A57" StrokeThickness="22" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
+                        <Ellipse Canvas.Left="214" Canvas.Top="174" Width="44" Height="44" Fill="#FF9B83C9" />
+                        <Ellipse Canvas.Left="227" Canvas.Top="187" Width="18" Height="18" Fill="#FF17191D" />
+                        <Ellipse Canvas.Left="283" Canvas.Top="183" Width="46" Height="46" Fill="#FFD98A57" />
+                        <Ellipse Canvas.Left="296" Canvas.Top="196" Width="20" Height="20" Fill="#FF17191D" />
+                        <Ellipse Canvas.Left="210" Canvas.Top="294" Width="52" Height="52" Fill="#FFCDBEEB" />
+                        <Ellipse Canvas.Left="225" Canvas.Top="309" Width="22" Height="22" Fill="#FF17191D" />
                     </Canvas>
-                </Border>
+                </Viewbox>
                 <Button x:Name="RepoButton" Style="{StaticResource GhostButtonStyle}" Background="{StaticResource SurfaceBrush}"
                         ToolTipService.ToolTip="Switch repository (Ctrl+P)" AutomationProperties.Name="Switch repository">
                     <StackPanel Orientation="Horizontal" Spacing="8">
