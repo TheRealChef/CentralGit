@@ -1,3 +1,4 @@
+using CentralGit.App.Theming;
 using CentralGit.App.ViewModels;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
@@ -24,9 +25,11 @@ public sealed partial class MainWindow
         // A failure is easier to understand with the details in view: open the panel for it.
         ViewModel.Operations.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(OperationsViewModel.IsBusy)
+            if (
+                e.PropertyName == nameof(OperationsViewModel.IsBusy)
                 && ViewModel.Operations is { IsIdle: true, Latest: { IsFailed: true, IsBackground: false } }
-                && !OperationsFlyout.IsOpen)
+                && !OperationsFlyout.IsOpen
+            )
                 OperationsFlyout.ShowAt(OperationsButton);
         };
 
@@ -44,12 +47,14 @@ public sealed partial class MainWindow
         var dialog = new ContentDialog
         {
             XamlRoot = Root.XamlRoot,
+            RequestedTheme = ThemeService.ContentTheme,
             Title = "Force push?",
             Content = new TextBlock
             {
                 TextWrapping = TextWrapping.Wrap,
-                Text = $"This replaces {target} with your branch. Commits on the remote that you don't have will be removed from it.\n\n"
-                     + "CentralGit uses --force-with-lease: if someone pushed since your last fetch, git refuses instead of overwriting their work.",
+                Text =
+                    $"This replaces {target} with your branch. Commits on the remote that you don't have will be removed from it.\n\n"
+                    + "CentralGit uses --force-with-lease: if someone pushed since your last fetch, git refuses instead of overwriting their work.",
             },
             PrimaryButtonText = "Force push",
             CloseButtonText = "Cancel",

@@ -1,17 +1,32 @@
 using CentralGit.App.Theming;
-using CentralGit.Core.Git;
-using CentralGit.Core.Operations;
-using CentralGit.Core.Repositories;
+using CentralGit.Application.Git;
+using CentralGit.Domain.Branches;
+using CentralGit.Domain.Changes;
+using CentralGit.Domain.Commits;
+using CentralGit.Domain.Operations;
+using CentralGit.Domain.Repositories;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Windows.UI;
 
 namespace CentralGit.App.ViewModels;
 
-public enum BranchPickKind { Create, Local, Remote }
+public enum BranchPickKind
+{
+    Create,
+    Local,
+    Remote,
+}
 
 public sealed class BranchPickItemViewModel
 {
-    public BranchPickItemViewModel(BranchPickKind kind, string name, string detail, string badge, Color badgeColor, bool isCurrent)
+    public BranchPickItemViewModel(
+        BranchPickKind kind,
+        string name,
+        string detail,
+        string badge,
+        Color badgeColor,
+        bool isCurrent
+    )
     {
         Kind = kind;
         Name = name;
@@ -21,11 +36,11 @@ public sealed class BranchPickItemViewModel
         IsCurrent = isCurrent;
         (Glyph, GlyphColor) = kind switch
         {
-            BranchPickKind.Create => ("", Palette.Violet),                   // add
-            BranchPickKind.Remote => ("", Palette.Info),                     // cloud
-            _ => ("", isCurrent ? Palette.Violet : Palette.TextSecondary), // branch
+            BranchPickKind.Create => ("", Palette.Chrome.Violet), // add
+            BranchPickKind.Remote => ("", Palette.Chrome.Info), // cloud
+            _ => ("", isCurrent ? Palette.Chrome.Violet : Palette.Chrome.TextSecondary), // branch
         };
-        NameColor = isCurrent ? Palette.VioletText : Palette.TextPrimary;
+        NameColor = isCurrent ? Palette.Chrome.VioletText : Palette.Chrome.TextPrimary;
     }
 
     public BranchPickKind Kind { get; }
@@ -57,12 +72,28 @@ public sealed partial class BranchPickerViewModel(ShellViewModel shell) : Observ
     public string Query
     {
         get => _query;
-        set { if (SetProperty(ref _query, value)) Refresh(); }
+        set
+        {
+            if (SetProperty(ref _query, value))
+                Refresh();
+        }
     }
 
-    public IReadOnlyList<BranchPickItemViewModel> Results { get => _results; private set => SetProperty(ref _results, value); }
-    public BranchPickItemViewModel? Selected { get => _selected; set => SetProperty(ref _selected, value); }
-    public string Hint { get => _hint; private set => SetProperty(ref _hint, value); }
+    public IReadOnlyList<BranchPickItemViewModel> Results
+    {
+        get => _results;
+        private set => SetProperty(ref _results, value);
+    }
+    public BranchPickItemViewModel? Selected
+    {
+        get => _selected;
+        set => SetProperty(ref _selected, value);
+    }
+    public string Hint
+    {
+        get => _hint;
+        private set => SetProperty(ref _hint, value);
+    }
 
     public async Task OpenAsync()
     {
@@ -116,19 +147,52 @@ public sealed partial class BranchPickerViewModel(ShellViewModel shell) : Observ
         var tracked = _local.Select(b => b.Upstream).Where(u => u is not null).ToHashSet(StringComparer.Ordinal);
         var localNames = _local.Select(b => b.Name).ToHashSet(StringComparer.Ordinal);
 
-        var local = _local.Select(b => (
-            item: new BranchPickItemViewModel(BranchPickKind.Local, b.Name,
-                Detail(b.LastCommit, b.Upstream is null ? "not published" : b.UpstreamGone ? $"{b.Upstream} is gone" : b.Upstream, now),
-                b.IsHead ? "current" : b.Behind > 0 && b.Ahead > 0 ? $"↑{b.Ahead} ↓{b.Behind}" : b.Behind > 0 ? $"↓{b.Behind}" : b.Ahead > 0 ? $"↑{b.Ahead}" : "",
-                b.IsHead ? Palette.Violet : b.Behind > 0 ? Palette.OrangeText : Palette.VioletText,
-                b.IsHead),
-            b.LastCommit,
-            b.IsHead));
+        var local = _local.Select(b =>
+            (
+                item: new BranchPickItemViewModel(
+                    BranchPickKind.Local,
+                    b.Name,
+                    Detail(
+                        b.LastCommit,
+                        b.Upstream is null ? "not published"
+                            : b.UpstreamGone ? $"{b.Upstream} is gone"
+                            : b.Upstream,
+                        now
+                    ),
+                    b.IsHead ? "current"
+                        : b.Behind > 0 && b.Ahead > 0 ? $"↑{b.Ahead} ↓{b.Behind}"
+                        : b.Behind > 0 ? $"↓{b.Behind}"
+                        : b.Ahead > 0 ? $"↑{b.Ahead}"
+                        : "",
+                    b.IsHead ? Palette.Chrome.Violet
+                        : b.Behind > 0 ? Palette.Chrome.OrangeText
+                        : Palette.Chrome.VioletText,
+                    b.IsHead
+                ),
+                b.LastCommit,
+                b.IsHead
+            )
+        );
 
         // Remote branches already checked out locally are reached through their local branch.
-        var remote = _remote.Where(r => !tracked.Contains(r.Name) && !localNames.Contains(r.ShortName))
-            .Select(r => (item: new BranchPickItemViewModel(BranchPickKind.Remote, r.Name, Detail(r.LastCommit, "remote — check out to track it", now),
-                "", Palette.TextMuted, false) { Remote = r }, r.LastCommit));
+        var remote = _remote
+            .Where(r => !tracked.Contains(r.Name) && !localNames.Contains(r.ShortName))
+            .Select(r =>
+                (
+                    item: new BranchPickItemViewModel(
+                        BranchPickKind.Remote,
+                        r.Name,
+                        Detail(r.LastCommit, "remote — check out to track it", now),
+                        "",
+                        Palette.Chrome.TextMuted,
+                        false
+                    )
+                    {
+                        Remote = r,
+                    },
+                    r.LastCommit
+                )
+            );
 
         List<BranchPickItemViewModel> results;
         if (query.Length == 0)
@@ -143,16 +207,30 @@ public sealed partial class BranchPickerViewModel(ShellViewModel shell) : Observ
         {
             results =
             [
-                .. local.Select(x => (x.item, Score: FuzzyMatcher.Score(query, x.item.Name)))
-                    .Where(x => x.Score is not null).OrderByDescending(x => x.Score).Select(x => x.item),
-                .. remote.Select(x => (x.item, Score: FuzzyMatcher.Score(query, x.item.Name)))
-                    .Where(x => x.Score is not null).OrderByDescending(x => x.Score).Take(MaxRemote).Select(x => x.item),
+                .. local
+                    .Select(x => (x.item, Score: FuzzyMatcher.Score(query, x.item.Name)))
+                    .Where(x => x.Score is not null)
+                    .OrderByDescending(x => x.Score)
+                    .Select(x => x.item),
+                .. remote
+                    .Select(x => (x.item, Score: FuzzyMatcher.Score(query, x.item.Name)))
+                    .Where(x => x.Score is not null)
+                    .OrderByDescending(x => x.Score)
+                    .Take(MaxRemote)
+                    .Select(x => x.item),
             ];
 
-            var name = BranchOperations.Suggest(query);
+            var name = BranchNames.Suggest(query);
             if (name.Length > 0 && !localNames.Contains(name))
             {
-                var create = new BranchPickItemViewModel(BranchPickKind.Create, name, $"Create branch from {current ?? "HEAD"} and switch to it", "new", Palette.Violet, false);
+                var create = new BranchPickItemViewModel(
+                    BranchPickKind.Create,
+                    name,
+                    $"Create branch from {current ?? "HEAD"} and switch to it",
+                    "new",
+                    Palette.Chrome.Violet,
+                    false
+                );
                 // Exact matches stay on top; otherwise creating is the likely intent.
                 if (results.Count > 0 && results[0].Name.Equals(query, StringComparison.OrdinalIgnoreCase))
                     results.Insert(1, create);
@@ -168,5 +246,8 @@ public sealed partial class BranchPickerViewModel(ShellViewModel shell) : Observ
     }
 
     private static string Detail(DateTimeOffset? when, string? extra, DateTimeOffset now) =>
-        string.Join("  ·  ", new[] { when is { } w ? RelativeTime.Format(w, now) : null, extra }.Where(s => !string.IsNullOrEmpty(s)));
+        string.Join(
+            "  ·  ",
+            new[] { when is { } w ? RelativeTime.Format(w, now) : null, extra }.Where(s => !string.IsNullOrEmpty(s))
+        );
 }

@@ -1,6 +1,9 @@
 using CentralGit.App.Theming;
-using CentralGit.Core.Git;
-using CentralGit.Core.Insights;
+using CentralGit.Application.Git;
+using CentralGit.Domain.Branches;
+using CentralGit.Domain.Changes;
+using CentralGit.Domain.Commits;
+using CentralGit.Domain.Health;
 using Microsoft.UI.Xaml;
 using Windows.UI;
 
@@ -25,61 +28,88 @@ public sealed class BranchItemViewModel
         var verdict = IsHead ? BranchVerdict.Active : assessment?.Verdict ?? BranchVerdict.Active;
         IsStale = verdict is not BranchVerdict.Active;
 
-        Badge = branch.Behind > 0 && branch.Ahead > 0 ? $"↑{branch.Ahead} ↓{branch.Behind}"
+        Badge =
+            branch.Behind > 0 && branch.Ahead > 0 ? $"↑{branch.Ahead} ↓{branch.Behind}"
             : branch.Behind > 0 ? $"↓{branch.Behind}"
             : branch.Ahead > 0 ? $"↑{branch.Ahead}"
             : verdict == BranchVerdict.Merged ? "merged"
             : branch.UpstreamGone ? "gone"
-            : branch.Upstream is null ? "local" : "";
-        BadgeColor = branch.Behind > 0 ? Palette.OrangeText : branch.Ahead > 0 ? Palette.VioletText
-            : verdict == BranchVerdict.Merged ? Palette.GreenText : Palette.TextMuted;
+            : branch.Upstream is null ? "local"
+            : "";
+        BadgeColor =
+            branch.Behind > 0 ? Palette.Chrome.OrangeText
+            : branch.Ahead > 0 ? Palette.Chrome.VioletText
+            : verdict == BranchVerdict.Merged ? Palette.Chrome.GreenText
+            : Palette.Chrome.TextMuted;
 
         // Age only when it's worth noticing: quiet for weeks (muted) or abandoned (orange).
-        if (verdict is BranchVerdict.Aging or BranchVerdict.Abandoned or BranchVerdict.Merged or BranchVerdict.Gone
-            && assessment?.Age is { } age && age >= RepositoryHealth.AgingAfter)
+        if (
+            verdict is BranchVerdict.Aging or BranchVerdict.Abandoned or BranchVerdict.Merged or BranchVerdict.Gone
+            && assessment?.Age is { } age
+            && age >= RepositoryHealth.AgingAfter
+        )
         {
             AgeText = RepositoryHealth.ShortAge(age);
-            AgeColor = verdict == BranchVerdict.Abandoned ? Palette.OrangeText : Palette.TextMuted;
+            AgeColor = verdict == BranchVerdict.Abandoned ? Palette.Chrome.OrangeText : Palette.Chrome.TextMuted;
         }
 
-        DotColor = IsHead ? Palette.Violet
-            : branch.Name is "main" or "master" or "develop" ? Palette.Teal
-            : IsStale ? Palette.WithAlpha(Palette.Slate, 0.45) : Palette.Slate;
-        NameColor = IsHead ? Palette.TextPrimary : IsStale ? Palette.TextMuted : Color.FromArgb(255, 0xD5, 0xD7, 0xDB);
+        DotColor =
+            IsHead ? Palette.Chrome.Violet
+            : branch.Name is "main" or "master" or "develop" ? Palette.Chrome.Teal
+            : IsStale ? Palette.WithAlpha(Palette.Chrome.Slate, 0.45)
+            : Palette.Chrome.Slate;
+        NameColor =
+            IsHead ? Palette.Chrome.TextPrimary
+            : IsStale ? Palette.Chrome.TextMuted
+            : Palette.Chrome.TextBranch;
 
         var staleness = verdict switch
         {
-            BranchVerdict.Merged => $"\nMerged into {assessment!.MergedInto} — safe to delete (Health → Branch cleanup).",
-            BranchVerdict.Gone => "\nDeleted on the remote — probably merged through a pull request. Consider deleting it.",
-            BranchVerdict.Abandoned => $"\nNo commits for {RepositoryHealth.DescribeAge(assessment!.Age!.Value)} and not merged. Consider deleting it.",
+            BranchVerdict.Merged =>
+                $"\nMerged into {assessment!.MergedInto} — safe to delete (Health → Branch cleanup).",
+            BranchVerdict.Gone =>
+                "\nDeleted on the remote — probably merged through a pull request. Consider deleting it.",
+            BranchVerdict.Abandoned =>
+                $"\nNo commits for {RepositoryHealth.DescribeAge(assessment!.Age!.Value)} and not merged. Consider deleting it.",
             BranchVerdict.Aging => $"\nQuiet for {RepositoryHealth.DescribeAge(assessment!.Age!.Value)}.",
             _ => "",
         };
-        var last = assessment?.Age is { } a2 && assessment.Branch.LastAuthor is { } who
-            ? $"\nLast commit {(a2.TotalDays < 1 ? "today" : RepositoryHealth.DescribeAge(a2) + " ago")} by {who}" : "";
-        Tooltip = (branch.Upstream is { } u ? $"{branch.Name} → {u}" : $"{branch.Name} (not published)")
-            + last + staleness
+        var last =
+            assessment?.Age is { } a2 && assessment.Branch.LastAuthor is { } who
+                ? $"\nLast commit {(a2.TotalDays < 1 ? "today" : RepositoryHealth.DescribeAge(a2) + " ago")} by {who}"
+                : "";
+        Tooltip =
+            (branch.Upstream is { } u ? $"{branch.Name} → {u}" : $"{branch.Name} (not published)")
+            + last
+            + staleness
             + "\nClick to show it in History · double-click to switch · right-click for more";
     }
 
     /// <summary>Merged, gone, or quiet for weeks — drawn dimmed.</summary>
     public bool IsStale { get; }
     public string AgeText { get; } = "";
-    public Color AgeColor { get; } = Palette.TextMuted;
+    public Color AgeColor { get; } = Palette.Chrome.TextMuted;
     public bool HasAge => AgeText.Length > 0;
 
     /// <summary>A folder row.</summary>
-    public BranchItemViewModel(string folderPath, string folderName, int depth, int count, bool isExpanded, bool containsHead)
+    public BranchItemViewModel(
+        string folderPath,
+        string folderName,
+        int depth,
+        int count,
+        bool isExpanded,
+        bool containsHead
+    )
     {
         IsFolder = true;
         Depth = depth;
         FullName = folderPath;
         Name = folderName;
         Badge = count.ToString();
-        BadgeColor = Palette.TextMuted;
+        BadgeColor = Palette.Chrome.TextMuted;
         IsExpanded = isExpanded;
         DotColor = Palette.Transparent;
-        NameColor = containsHead ? Palette.TextPrimary : Palette.TextSecondary;
+        NameColor = containsHead ? Palette.Chrome.TextPrimary : Palette.Chrome.TextSecondary;
         Tooltip = $"{folderPath}/ — {count} branch{(count == 1 ? "" : "es")}";
     }
 
@@ -100,7 +130,7 @@ public sealed class BranchItemViewModel
     public Color BadgeColor { get; }
     public Color DotColor { get; }
     public Color NameColor { get; }
-    public Color RowBackground => IsHead ? Palette.WithAlpha(Palette.Violet, 0.10) : Palette.Transparent;
+    public Color RowBackground => IsHead ? Palette.WithAlpha(Palette.Chrome.Violet, 0.10) : Palette.Transparent;
     public string Tooltip { get; }
 
     /// <summary>The ListView item's accessible name.</summary>
@@ -110,8 +140,11 @@ public sealed class BranchItemViewModel
     /// Flattens branches into tree rows: folders first (alphabetical), then branches. Folders in
     /// <paramref name="collapsed"/> hide their contents; the current branch sorts to the top of its level.
     /// </summary>
-    public static List<BranchItemViewModel> BuildTree(IReadOnlyList<LocalBranch> branches, IReadOnlySet<string> collapsed,
-        IReadOnlyDictionary<string, BranchAssessment>? assessments = null)
+    public static List<BranchItemViewModel> BuildTree(
+        IReadOnlyList<LocalBranch> branches,
+        IReadOnlySet<string> collapsed,
+        IReadOnlyDictionary<string, BranchAssessment>? assessments = null
+    )
     {
         var rows = new List<BranchItemViewModel>();
         Add(branches.Select(b => (Remainder: b.Name, Branch: b)).ToList(), "", 0);
@@ -119,31 +152,48 @@ public sealed class BranchItemViewModel
 
         void Add(List<(string Remainder, LocalBranch Branch)> items, string prefix, int depth)
         {
-            var folders = items.Where(i => i.Remainder.Contains('/'))
+            var folders = items
+                .Where(i => i.Remainder.Contains('/'))
                 .GroupBy(i => i.Remainder[..i.Remainder.IndexOf('/')], StringComparer.Ordinal)
                 .OrderBy(g => g.Key, StringComparer.OrdinalIgnoreCase);
-            var leaves = items.Where(i => !i.Remainder.Contains('/'))
+            var leaves = items
+                .Where(i => !i.Remainder.Contains('/'))
                 .OrderByDescending(i => i.Branch.IsHead)
                 .ThenBy(i => i.Remainder, StringComparer.OrdinalIgnoreCase);
 
             // Top level: the current branch and main-line branches before folders.
             if (depth == 0)
                 foreach (var leaf in leaves)
-                    rows.Add(new BranchItemViewModel(leaf.Branch, depth, assessments?.GetValueOrDefault(leaf.Branch.Name)));
+                    rows.Add(
+                        new BranchItemViewModel(leaf.Branch, depth, assessments?.GetValueOrDefault(leaf.Branch.Name))
+                    );
 
             foreach (var folder in folders)
             {
                 var path = prefix + folder.Key;
                 var expanded = !collapsed.Contains(path);
-                var children = folder.Select(i => (Remainder: i.Remainder[(folder.Key.Length + 1)..], i.Branch)).ToList();
-                rows.Add(new BranchItemViewModel(path, folder.Key, depth, children.Count, expanded, children.Any(c => c.Branch.IsHead)));
+                var children = folder
+                    .Select(i => (Remainder: i.Remainder[(folder.Key.Length + 1)..], i.Branch))
+                    .ToList();
+                rows.Add(
+                    new BranchItemViewModel(
+                        path,
+                        folder.Key,
+                        depth,
+                        children.Count,
+                        expanded,
+                        children.Any(c => c.Branch.IsHead)
+                    )
+                );
                 if (expanded)
                     Add(children, path + "/", depth + 1);
             }
 
             if (depth > 0)
                 foreach (var leaf in leaves)
-                    rows.Add(new BranchItemViewModel(leaf.Branch, depth, assessments?.GetValueOrDefault(leaf.Branch.Name)));
+                    rows.Add(
+                        new BranchItemViewModel(leaf.Branch, depth, assessments?.GetValueOrDefault(leaf.Branch.Name))
+                    );
         }
     }
 }

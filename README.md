@@ -19,12 +19,19 @@ Requires Git on `PATH` (2.40+; 2.45+ recommended).
 
 ## Layout
 
-| Path | What |
-|---|---|
-| `src/CentralGit.Core` | UI-free engine: `GitRunner` (process + streaming), parsers for `git log` / `status --porcelain=v2`, `RepositoryScanner`, `GraphLayout` (lane assignment) |
-| `src/CentralGit.App` | WinUI 3 shell: custom title bar, sidebar, virtualized history with graph, status bar |
-| `tests/CentralGit.Core.Tests` | Parser and graph unit tests, plus an end-to-end test against a real temp repository |
-| `design/` | The design canvas (`*.dc.html`): History Browse / Investigate / Focus, visual language, Settings, Installer, Commit Composer |
+| Path                                    | What                                                                                                                         |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `src/CentralGit.Domain`                 | Pure model and rules: commits, branches, diff, graph lane layout, repository health. No I/O                                  |
+| `src/CentralGit.Application`            | Ports (interfaces) and feature services: history, changes, branches, sync, health, repositories                              |
+| `src/CentralGit.Infrastructure`         | Adapters: `GitRunner` and git CLI parsers, repository scanning, settings storage, Credential Manager                         |
+| `src/CentralGit.App`                    | WinUI 3 shell and view models; `App.xaml.cs` is the composition root (dependency injection)                                  |
+| `tests/CentralGit.Domain.Tests`         | Rule tests                                                                                                                   |
+| `tests/CentralGit.Application.Tests`    | Service tests against in-memory fakes                                                                                        |
+| `tests/CentralGit.Infrastructure.Tests` | Parser tests, plus end-to-end tests against real temp repositories                                                           |
+| `tests/CentralGit.Architecture.Tests`   | Enforces the dependency rule (Domain ← Application ← Infrastructure; App uses Infrastructure only at the root)               |
+| `design/`                               | The design canvas (`*.dc.html`): History Browse / Investigate / Focus, visual language, Settings, Installer, Commit Composer |
+
+Formatting: `.\format.ps1` (CSharpier, XamlStyler, Prettier); CI fails on unformatted code.
 
 ## Roadmap
 

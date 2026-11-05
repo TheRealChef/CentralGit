@@ -3,6 +3,21 @@ root = true
 # All files
 [*]
 indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 120
+
+# Formatting is owned by tools, not the IDE: CSharpier (*.cs), XamlStyler (*.xaml),
+# Prettier (json, yaml, markdown). See CLAUDE.md › Formatting.
+
+[*.xaml]
+indent_size = 4
+
+[*.{yml,yaml,md}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
 
 # Xml files
 [*.xml]
@@ -27,9 +42,6 @@ indent_size = 2
 # Indentation and spacing
 indent_size = 4
 tab_width = 4
-
-# New line preferences
-insert_final_newline = false
 
 #### .NET Coding Conventions ####
 [*.{cs,vb}]

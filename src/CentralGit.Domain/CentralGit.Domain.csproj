@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The innermost ring: CentralGit's models and rules. No references, no I/O, no git. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>CentralGit.Domain</RootNamespace>
+  </PropertyGroup>
+</Project>

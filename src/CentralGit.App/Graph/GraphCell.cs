@@ -22,8 +22,11 @@ public sealed partial class GraphCell : Canvas
     private static readonly Dictionary<Color, SolidColorBrush> Brushes = [];
 
     public static readonly DependencyProperty RowProperty = DependencyProperty.Register(
-        nameof(Row), typeof(CommitRowViewModel), typeof(GraphCell),
-        new PropertyMetadata(null, (d, _) => ((GraphCell)d).Rebuild()));
+        nameof(Row),
+        typeof(CommitRowViewModel),
+        typeof(GraphCell),
+        new PropertyMetadata(null, (d, _) => ((GraphCell)d).Rebuild())
+    );
 
     public CommitRowViewModel? Row
     {
@@ -36,10 +39,11 @@ public sealed partial class GraphCell : Canvas
         Height = RowHeight;
         IsHitTestVisible = false;
         // Wide graphs (many parallel lanes) must never draw over the description column.
-        SizeChanged += (_, e) => Clip = new Microsoft.UI.Xaml.Media.RectangleGeometry
-        {
-            Rect = new Windows.Foundation.Rect(0, 0, e.NewSize.Width, e.NewSize.Height),
-        };
+        SizeChanged += (_, e) =>
+            Clip = new Microsoft.UI.Xaml.Media.RectangleGeometry
+            {
+                Rect = new Windows.Foundation.Rect(0, 0, e.NewSize.Width, e.NewSize.Height),
+            };
     }
 
     private static double X(int lane) => Inset + lane * LaneWidth;
@@ -76,17 +80,24 @@ public sealed partial class GraphCell : Canvas
         else
         {
             var mid = (y0 + y1) / 2;
-            figure.Segments.Add(new BezierSegment
-            {
-                Point1 = new Point(x0, mid),
-                Point2 = new Point(x1, mid),
-                Point3 = new Point(x1, y1),
-            });
+            figure.Segments.Add(
+                new BezierSegment
+                {
+                    Point1 = new Point(x0, mid),
+                    Point2 = new Point(x1, mid),
+                    Point3 = new Point(x1, y1),
+                }
+            );
         }
 
         var geometry = new PathGeometry();
         geometry.Figures.Add(figure);
-        return new Microsoft.UI.Xaml.Shapes.Path { Data = geometry, Stroke = Brush(s.Color), StrokeThickness = 2 };
+        return new Microsoft.UI.Xaml.Shapes.Path
+        {
+            Data = geometry,
+            Stroke = Brush(s.Color),
+            StrokeThickness = 2,
+        };
     }
 
     private static Ellipse Circle(double cx, double cy, double r, Color? fill, Color stroke, double thickness)

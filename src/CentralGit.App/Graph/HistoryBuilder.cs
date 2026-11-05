@@ -1,6 +1,9 @@
 using CentralGit.App.ViewModels;
-using CentralGit.Core.Git;
-using CentralGit.Core.Graph;
+using CentralGit.Application.Git;
+using CentralGit.Domain.Branches;
+using CentralGit.Domain.Changes;
+using CentralGit.Domain.Commits;
+using CentralGit.Domain.Graph;
 
 namespace CentralGit.App.Graph;
 
@@ -32,11 +35,17 @@ public sealed class HistoryBuilder(string? headHash, string? headBranch, SyncSet
 
             var graphRow = _layout.Add(commit);
             var (strokes, dot) = _colorizer.Colorize(graphRow, onCurrentBranch);
-            rows.Add(new CommitRowViewModel(
-                commit, graphRow.Lane, strokes, dot,
-                isHead: commit.Hash == _head,
-                refs: CommitRowViewModel.BuildRefs(commit, headBranch, dot),
-                sync: (sync ?? SyncSets.Empty).Of(commit.Hash)));
+            rows.Add(
+                new CommitRowViewModel(
+                    commit,
+                    graphRow.Lane,
+                    strokes,
+                    dot,
+                    isHead: commit.Hash == _head,
+                    refs: CommitRowViewModel.BuildRefs(commit, headBranch, dot),
+                    sync: (sync ?? SyncSets.Empty).Of(commit.Hash)
+                )
+            );
         }
         Count += rows.Count;
         return rows;

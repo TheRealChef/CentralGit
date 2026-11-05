@@ -1,0 +1,12 @@
+{
+  "name": "centralgit-tooling",
+  "private": true,
+  "description": "Formatting tools for non-C# files. The app itself is .NET; see CLAUDE.md.",
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "3.6.2"
+  }
+}

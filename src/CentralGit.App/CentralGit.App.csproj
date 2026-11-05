@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
@@ -8,11 +7,11 @@
     <AssemblyName>CentralGit</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets/CentralGit.ico</ApplicationIcon>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks> <!-- LibraryImport (Credential Manager listing) -->
     <Platforms>x64;ARM64</Platforms>
     <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
     <!-- Plain `dotnet build` of the solution has no platform; default to x64 so it just works. -->
-    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' and '$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' and '$(Platform)' == 'ARM64'"
+      >win-arm64</RuntimeIdentifier>
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
     <UseWinUI>true</UseWinUI>
     <!-- Unpackaged: installed per-user by our own setup (Velopack), not MSIX. -->
@@ -27,11 +26,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CentralGit.Core\CentralGit.Core.csproj" />
+    <ProjectReference Include="..\CentralGit.Application\CentralGit.Application.csproj" />
+    <ProjectReference Include="..\CentralGit.Domain\CentralGit.Domain.csproj" />
+    <!-- The composition root (App.xaml.cs) is the only place that uses it; Architecture.Tests checks. -->
+    <ProjectReference Include="..\CentralGit.Infrastructure\CentralGit.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2957" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.6.5" />
     <PackageReference Include="Velopack" Version="1.2.161" />

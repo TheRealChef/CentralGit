@@ -1,4 +1,4 @@
-using CentralGit.Core.Diff;
+using CentralGit.Domain.Diff;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -11,13 +11,15 @@ public sealed partial class DiffTemplateSelector : DataTemplateSelector
     public DataTemplate? HunkTemplate { get; set; }
     public DataTemplate? GapTemplate { get; set; }
 
-    protected override DataTemplate? SelectTemplateCore(object item) => item switch
-    {
-        DiffRowViewModel { Kind: DiffRowKind.HunkHeader } => HunkTemplate,
-        DiffRowViewModel { Kind: DiffRowKind.Gap } => GapTemplate,
-        DiffRowViewModel { IsSplit: true } => SplitTemplate,
-        _ => UnifiedTemplate,
-    };
+    protected override DataTemplate? SelectTemplateCore(object item) =>
+        item switch
+        {
+            DiffRowViewModel { Kind: DiffRowKind.HunkHeader } => HunkTemplate,
+            DiffRowViewModel { Kind: DiffRowKind.Gap } => GapTemplate,
+            DiffRowViewModel { IsSplit: true } => SplitTemplate,
+            _ => UnifiedTemplate,
+        };
 
-    protected override DataTemplate? SelectTemplateCore(object item, DependencyObject container) => SelectTemplateCore(item);
+    protected override DataTemplate? SelectTemplateCore(object item, DependencyObject container) =>
+        SelectTemplateCore(item);
 }

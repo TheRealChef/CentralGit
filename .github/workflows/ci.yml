@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Restore tools
+        run: dotnet tool restore
+
+      - name: Install Prettier
+        run: npm ci
+
+      # One step per formatter: PowerShell only checks the exit code of a step's last command.
+      - name: C# formatting (CSharpier)
+        run: dotnet csharpier check .
+
+      - name: XAML formatting (XamlStyler)
+        run: dotnet xstyler --passive --config Settings.XamlStyler --file ((git ls-files '*.xaml') -join ',')
+
+      - name: JSON / YAML / Markdown formatting (Prettier)
+        run: npx prettier --check .
+
+      - name: Build
+        run: dotnet build CentralGit.slnx -m:1 -c Release
+
+      - name: Test
+        run: dotnet test CentralGit.slnx -m:1 -c Release --no-build

@@ -1,5 +1,7 @@
-﻿using CentralGit.App.Services;
+using CentralGit.App.Theming;
 using CentralGit.App.ViewModels;
+using CentralGit.Application.Ports;
+using CentralGit.Application.Settings;
 using Microsoft.UI;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Input;
@@ -26,25 +28,58 @@ public sealed partial class MainWindow : Window
     private double _historyRatio = 0.55;
     private DispatcherQueueTimer? _transition;
 
-    public ShellViewModel ViewModel { get; } = new();
+    private readonly ISettingsStore _settings;
+    private readonly ILayoutStore _layouts;
+
+    public ShellViewModel ViewModel { get; }
     public SwitcherViewModel Switcher { get; }
     public SettingsViewModel Settings { get; }
 
-    public MainWindow(string? requestedPath)
+    public MainWindow(
+        StartupOptions startup,
+        ShellViewModel viewModel,
+        SwitcherViewModel switcher,
+        SettingsViewModel settingsPage,
+        BranchPickerViewModel branchPicker,
+        ISettingsStore settings,
+        ILayoutStore layouts
+    )
     {
-        _requestedPath = requestedPath;
-        Switcher = new SwitcherViewModel(ViewModel);
-        Settings = new SettingsViewModel(ViewModel);
-        BranchPicker = new BranchPickerViewModel(ViewModel);
+        _requestedPath = startup.RequestedPath;
+        _settings = settings;
+        _layouts = layouts;
+        _panes = settings.Current.Panes;
+        ViewModel = viewModel;
+        Switcher = switcher;
+        Settings = settingsPage;
+        BranchPicker = branchPicker;
         InitializeComponent();
 
         // Ctrl+P (switcher) and Ctrl+, (settings). Comma has no named VirtualKey, so these are added here.
-        Root.KeyboardAccelerators.Add(Accelerator(Windows.System.VirtualKey.P, (_, a) => { OpenSwitcher(); a.Handled = true; }));
-        Root.KeyboardAccelerators.Add(Accelerator((Windows.System.VirtualKey)188, (_, a) => { OpenSettings(SettingsSection.Repositories); a.Handled = true; }));
+        Root.KeyboardAccelerators.Add(
+            Accelerator(
+                Windows.System.VirtualKey.P,
+                (_, a) =>
+                {
+                    OpenSwitcher();
+                    a.Handled = true;
+                }
+            )
+        );
+        Root.KeyboardAccelerators.Add(
+            Accelerator(
+                (Windows.System.VirtualKey)188,
+                (_, a) =>
+                {
+                    OpenSettings(SettingsSection.Repositories);
+                    a.Handled = true;
+                }
+            )
+        );
         ViewModel.RepositoryOpened += () =>
         {
             if (ViewModel.RepositoryPath is { } p)
-                _historyRatio = LayoutStore.Get(p).HistoryRatio;
+                _historyRatio = _layouts.Get(p).HistoryRatio;
             ApplyMode(animate: false);
             DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusSelectedCommit);
         };
@@ -63,9 +98,7 @@ public sealed partial class MainWindow : Window
         titleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
         titleBar.ButtonBackgroundColor = Colors.Transparent;
         titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
-        titleBar.ButtonForegroundColor = Windows.UI.Color.FromArgb(255, 0xAD, 0xB1, 0xB9);
-        titleBar.ButtonHoverBackgroundColor = Windows.UI.Color.FromArgb(255, 0x2A, 0x2E, 0x35);
-        titleBar.ButtonHoverForegroundColor = Windows.UI.Color.FromArgb(255, 0xED, 0xEB, 0xE8);
+        InitializeTheme();
 
         FitToWorkArea();
 
@@ -74,7 +107,9 @@ public sealed partial class MainWindow : Window
             switch (e.PropertyName)
             {
                 case nameof(ShellViewModel.StatusIsError):
-                    StatusLine.Foreground = (Brush)Application.Current.Resources[ViewModel.StatusIsError ? "RedTextBrush" : "TextSecondaryBrush"];
+                    StatusLine.Foreground = ThemeService.ChromeBrush(
+                        ViewModel.StatusIsError ? "RedTextBrush" : "TextSecondaryBrush"
+                    );
                     break;
                 case nameof(ShellViewModel.RepositoryName) or nameof(ShellViewModel.BranchName):
                     DispatcherQueue.TryEnqueue(UpdateTitleBarRegions);
@@ -106,7 +141,11 @@ public sealed partial class MainWindow : Window
 
         HistorySplitter.DragDelta += OnSplitterDrag;
         HistorySplitter.DragCompleted += SaveLayout;
-        Workspace.SizeChanged += (_, _) => { if (_transition is null) ApplyMode(animate: false); };
+        Workspace.SizeChanged += (_, _) =>
+        {
+            if (_transition is null)
+                ApplyMode(animate: false);
+        };
 
         AppTitleBar.SizeChanged += (_, _) => UpdateTitleBarRegions();
         Activated += OnActivated;
@@ -126,7 +165,8 @@ public sealed partial class MainWindow : Window
         };
     }
 
-    private static T? FindDescendant<T>(DependencyObject root) where T : DependencyObject
+    private static T? FindDescendant<T>(DependencyObject root)
+        where T : DependencyObject
     {
         for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
         {
@@ -172,7 +212,9 @@ public sealed partial class MainWindow : Window
         var work = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary).WorkArea;
         var width = Math.Min(1600, (int)(work.Width * 0.92));
         var height = Math.Min(1000, (int)(work.Height * 0.92));
-        AppWindow.MoveAndResize(new RectInt32(work.X + (work.Width - width) / 2, work.Y + (work.Height - height) / 2, width, height));
+        AppWindow.MoveAndResize(
+            new RectInt32(work.X + (work.Width - width) / 2, work.Y + (work.Height - height) / 2, width, height)
+        );
     }
 
     private async void OnActivated(object sender, WindowActivatedEventArgs args)
@@ -185,7 +227,7 @@ public sealed partial class MainWindow : Window
 
         if (ViewModel.RepositoryPath is { } path)
         {
-            _historyRatio = LayoutStore.Get(path).HistoryRatio;
+            _historyRatio = _layouts.Get(path).HistoryRatio;
             ApplyMode(animate: false);
         }
 
@@ -206,12 +248,25 @@ public sealed partial class MainWindow : Window
 
     private double AvailableHeight => Math.Max(0, Workspace.ActualHeight - SplitterHeight);
 
-    private (double History, double Sidebar, double Details) Targets() => ViewModel.Mode switch
-    {
-        WorkspaceMode.Investigate => (Math.Min(InvestigateHistoryHeight, AvailableHeight - MinPaneHeight), _panes.Sidebar, _panes.Details),
-        WorkspaceMode.Focus => (0, 0, 0),
-        _ => (Math.Clamp(_historyRatio * AvailableHeight, MinPaneHeight, Math.Max(MinPaneHeight, AvailableHeight - MinPaneHeight)), _panes.Sidebar, _panes.Details),
-    };
+    private (double History, double Sidebar, double Details) Targets() =>
+        ViewModel.Mode switch
+        {
+            WorkspaceMode.Investigate => (
+                Math.Min(InvestigateHistoryHeight, AvailableHeight - MinPaneHeight),
+                _panes.Sidebar,
+                _panes.Details
+            ),
+            WorkspaceMode.Focus => (0, 0, 0),
+            _ => (
+                Math.Clamp(
+                    _historyRatio * AvailableHeight,
+                    MinPaneHeight,
+                    Math.Max(MinPaneHeight, AvailableHeight - MinPaneHeight)
+                ),
+                _panes.Sidebar,
+                _panes.Details
+            ),
+        };
 
     /// <summary>
     /// Moves the history/inspector split, sidebar and details column to the current mode.
@@ -239,7 +294,11 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        var (fromHistory, fromSidebar, fromDetails) = (HistoryRow.ActualHeight, SidebarColumn.ActualWidth, DetailsColumn.ActualWidth);
+        var (fromHistory, fromSidebar, fromDetails) = (
+            HistoryRow.ActualHeight,
+            SidebarColumn.ActualWidth,
+            DetailsColumn.ActualWidth
+        );
         var started = DateTime.UtcNow;
         var timer = _transition = DispatcherQueue.CreateTimer();
         timer.Interval = TimeSpan.FromMilliseconds(8);
@@ -250,7 +309,8 @@ public sealed partial class MainWindow : Window
             SetSizes(
                 fromHistory + (toHistory - fromHistory) * e,
                 fromSidebar + (toSidebar - fromSidebar) * e,
-                fromDetails + (toDetails - fromDetails) * e);
+                fromDetails + (toDetails - fromDetails) * e
+            );
             if (p >= 1)
             {
                 t.Stop();
@@ -289,19 +349,21 @@ public sealed partial class MainWindow : Window
     private void SaveLayout()
     {
         if (ViewModel.RepositoryPath is { } path)
-            LayoutStore.Set(path, new RepositoryLayout(_historyRatio, ViewModel.Inspector.IsSplit));
+            _layouts.Set(path, new RepositoryLayout(_historyRatio, ViewModel.Inspector.IsSplit));
     }
 
     private void UpdateFocusHeader()
     {
-        FocusCommitRun.Text = ViewModel.Mode == WorkspaceMode.Focus && ViewModel.Inspector.Details is { } d
-            ? $"{d.ShortHash[..7]} · {d.Subject}   "
-            : "";
+        FocusCommitRun.Text =
+            ViewModel.Mode == WorkspaceMode.Focus && ViewModel.Inspector.Details is { } d
+                ? $"{d.ShortHash[..7]} · {d.Subject}   "
+                : "";
     }
 
     // --- Input ---------------------------------------------------------------
 
-    private void OnHistoryDoubleTapped(object sender, DoubleTappedRoutedEventArgs e) => SetMode(WorkspaceMode.Investigate);
+    private void OnHistoryDoubleTapped(object sender, DoubleTappedRoutedEventArgs e) =>
+        SetMode(WorkspaceMode.Investigate);
 
     private void OnHistoryPreviewKeyDown(object sender, KeyRoutedEventArgs e)
     {
@@ -368,7 +430,7 @@ public sealed partial class MainWindow : Window
     private void UpdateDiffToggle()
     {
         var split = ViewModel.Inspector.IsSplit;
-        var on = (Brush)Application.Current.Resources["ElevatedBrush"];
+        var on = ThemeService.ContentBrush("ElevatedBrush");
         var off = new SolidColorBrush(Colors.Transparent);
         SplitButton.Background = split ? on : off;
         UnifiedButton.Background = split ? off : on;
@@ -408,8 +470,11 @@ public sealed partial class MainWindow : Window
             {
                 var bounds = e.TransformToVisual(null).TransformBounds(new Rect(0, 0, e.ActualWidth, e.ActualHeight));
                 return new RectInt32(
-                    (int)Math.Round(bounds.X * scale), (int)Math.Round(bounds.Y * scale),
-                    (int)Math.Round(bounds.Width * scale), (int)Math.Round(bounds.Height * scale));
+                    (int)Math.Round(bounds.X * scale),
+                    (int)Math.Round(bounds.Y * scale),
+                    (int)Math.Round(bounds.Width * scale),
+                    (int)Math.Round(bounds.Height * scale)
+                );
             })
             .ToArray();
 

@@ -2,47 +2,57 @@ using Windows.UI;
 
 namespace CentralGit.App.Theming;
 
-/// <summary>Code-side mirror of Themes/Tokens.xaml for colors computed at runtime (graph lanes, ref chips).</summary>
+/// <summary>
+/// Colors for view models (graph lanes, chips, row tints). <see cref="Content"/> is the theme of the
+/// pages; <see cref="Chrome"/> the theme of the title bar, sidebar and status bar, which stay dark in
+/// the light theme unless the user turns that off. Set by <see cref="ThemeService"/>; view models
+/// read them when they're built, so a theme change rebuilds them.
+/// </summary>
 public static class Palette
 {
-    public static readonly Color Violet = Hex(0x9B83C9);
-    public static readonly Color Teal = Hex(0x78A6A5);
-    public static readonly Color Orange = Hex(0xD98A57);
-    public static readonly Color Sand = Hex(0xB8A887);
-    public static readonly Color Slate = Hex(0x8C95A6);
-    public static readonly Color SlateAlt = Hex(0x7E8899);
-    public static readonly Color Surface = Hex(0x23262C);
-    public static readonly Color TextPrimary = Hex(0xEDEBE8);
-    public static readonly Color TextSecondary = Hex(0xADB1B9);
-    public static readonly Color TextMuted = Hex(0x8B929D);
-    public static readonly Color VioletText = Hex(0xB9A6DE);
-    public static readonly Color OrangeText = Hex(0xE2A57E);
+    public static ThemeColors Content { get; internal set; } = ThemeColors.Dark;
+    public static ThemeColors Chrome { get; internal set; } = ThemeColors.Dark;
+
+    public static Color Violet => Content.Violet;
+    public static Color Teal => Content.Teal;
+    public static Color Orange => Content.Orange;
+    public static Color Sand => Content.Sand;
+    public static Color Slate => Content.Slate;
+    public static Color SlateAlt => Content.SlateAlt;
+    public static Color Surface => Content.Surface;
+    public static Color TextPrimary => Content.TextPrimary;
+    public static Color TextSecondary => Content.TextSecondary;
+    public static Color TextMuted => Content.TextMuted;
+    public static Color VioletText => Content.VioletText;
+    public static Color OrangeText => Content.OrangeText;
     public static readonly Color Transparent = Color.FromArgb(0, 0, 0, 0);
-    public static readonly Color Green = Hex(0x78AD91);
-    public static readonly Color GreenText = Hex(0x8FC0A6);
-    public static readonly Color Red = Hex(0xD46F6A);
-    public static readonly Color RedText = Hex(0xDE8C87);
-    public static readonly Color Info = Hex(0x8EA3BF);
-    public static readonly Color Raised = Hex(0x2A2E35);
+    public static Color Green => Content.Green;
+    public static Color GreenText => Content.GreenText;
+    public static Color Red => Content.Red;
+    public static Color RedText => Content.RedText;
+    public static Color Info => Content.Info;
+    public static Color Raised => Content.Raised;
 
     // Diff: whole-line tint, plus a stronger tint for the exact characters that changed.
-    public static readonly Color AddedLine = WithAlpha(Green, 0.10);
-    public static readonly Color AddedGutter = WithAlpha(Green, 0.16);
-    public static readonly Color AddedChange = WithAlpha(Green, 0.28);
-    public static readonly Color DeletedLine = WithAlpha(Red, 0.10);
-    public static readonly Color DeletedGutter = WithAlpha(Red, 0.16);
-    public static readonly Color DeletedChange = WithAlpha(Red, 0.30);
-    public static readonly Color Filler = Hex(0x1E2126);
+    // Light backgrounds need a little more tint for the same visibility.
+    private static double Tint(double dark) => Content.IsDark ? dark : dark * 1.25;
 
-    // Syntax: quiet, warm-neutral; never competes with the meaning accents.
-    public static readonly Color SyntaxPlain = Hex(0xD9D6D0);
-    public static readonly Color SyntaxKeyword = Hex(0xB9A6DE);
-    public static readonly Color SyntaxType = Hex(0x9DB3CF);
-    public static readonly Color SyntaxString = Hex(0xC4B48F);
-    public static readonly Color SyntaxComment = Hex(0x7D848F);
-    public static readonly Color SyntaxNumber = Hex(0xC9A98B);
-    public static readonly Color SyntaxFunction = Hex(0xE6E1D8);
-    public static readonly Color SyntaxPunctuation = Hex(0x9EA4AE);
+    public static Color AddedLine => WithAlpha(Green, Tint(0.10));
+    public static Color AddedGutter => WithAlpha(Green, Tint(0.16));
+    public static Color AddedChange => WithAlpha(Green, Tint(0.28));
+    public static Color DeletedLine => WithAlpha(Red, Tint(0.10));
+    public static Color DeletedGutter => WithAlpha(Red, Tint(0.16));
+    public static Color DeletedChange => WithAlpha(Red, Tint(0.30));
+    public static Color Filler => Content.Filler;
+
+    public static Color SyntaxPlain => Content.SyntaxPlain;
+    public static Color SyntaxKeyword => Content.SyntaxKeyword;
+    public static Color SyntaxType => Content.SyntaxType;
+    public static Color SyntaxString => Content.SyntaxString;
+    public static Color SyntaxComment => Content.SyntaxComment;
+    public static Color SyntaxNumber => Content.SyntaxNumber;
+    public static Color SyntaxFunction => Content.SyntaxFunction;
+    public static Color SyntaxPunctuation => Content.SyntaxPunctuation;
 
     /// <summary>
     /// Lanes without a meaning get neutral slates; lane 0 is usually the trunk.
@@ -50,7 +60,15 @@ public static class Palette
     /// </summary>
     public static Color LaneDefault(int lane) => lane == 0 ? Teal : (lane % 2 == 1 ? Slate : SlateAlt);
 
-    public static Color WithAlpha(Color c, double alpha) => Color.FromArgb((byte)Math.Round(alpha * 255), c.R, c.G, c.B);
+    public static Color WithAlpha(Color c, double alpha) =>
+        Color.FromArgb((byte)Math.Round(Math.Clamp(alpha, 0, 1) * 255), c.R, c.G, c.B);
 
-    private static Color Hex(uint rgb) => Color.FromArgb(0xFF, (byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb);
+    /// <summary>Straight blend, for deriving shades (accent ramps) from a theme color.</summary>
+    public static Color Mix(Color a, Color b, double t) =>
+        Color.FromArgb(
+            (byte)Math.Round(a.A + (b.A - a.A) * t),
+            (byte)Math.Round(a.R + (b.R - a.R) * t),
+            (byte)Math.Round(a.G + (b.G - a.G) * t),
+            (byte)Math.Round(a.B + (b.B - a.B) * t)
+        );
 }

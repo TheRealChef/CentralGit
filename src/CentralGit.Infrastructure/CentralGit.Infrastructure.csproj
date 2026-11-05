@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Adapters behind the Application's ports: the git CLI, JSON files, Windows Credential Manager, the file system. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>CentralGit.Infrastructure</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- LibraryImport (Credential Manager listing) -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="CentralGit.Infrastructure.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CentralGit.Application\CentralGit.Application.csproj" />
+    <ProjectReference Include="..\CentralGit.Domain\CentralGit.Domain.csproj" />
+  </ItemGroup>
+</Project>

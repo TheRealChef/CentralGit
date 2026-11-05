@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using CentralGit.App.Theming;
 using CentralGit.App.ViewModels;
 using Microsoft.UI;
 using Microsoft.UI.Dispatching;
@@ -19,14 +20,49 @@ public sealed partial class MainWindow
 
     private void InitializeChanges()
     {
-        Root.KeyboardAccelerators.Add(Accelerator(Windows.System.VirtualKey.Number1, (_, a) => { ShowPage(AppPage.History); a.Handled = true; }));
-        Root.KeyboardAccelerators.Add(Accelerator(Windows.System.VirtualKey.Number2, (_, a) => { ShowPage(AppPage.Changes); a.Handled = true; }));
-        Root.KeyboardAccelerators.Add(Accelerator(Windows.System.VirtualKey.Number3, (_, a) => { ShowPage(AppPage.Health); a.Handled = true; }));
+        Root.KeyboardAccelerators.Add(
+            Accelerator(
+                Windows.System.VirtualKey.Number1,
+                (_, a) =>
+                {
+                    ShowPage(AppPage.History);
+                    a.Handled = true;
+                }
+            )
+        );
+        Root.KeyboardAccelerators.Add(
+            Accelerator(
+                Windows.System.VirtualKey.Number2,
+                (_, a) =>
+                {
+                    ShowPage(AppPage.Changes);
+                    a.Handled = true;
+                }
+            )
+        );
+        Root.KeyboardAccelerators.Add(
+            Accelerator(
+                Windows.System.VirtualKey.Number3,
+                (_, a) =>
+                {
+                    ShowPage(AppPage.Health);
+                    a.Handled = true;
+                }
+            )
+        );
         var refresh = new KeyboardAccelerator { Key = Windows.System.VirtualKey.F5 };
         refresh.Invoked += async (_, a) =>
         {
-            if (ViewModel.ShowChanges) { a.Handled = true; await Changes.RefreshAsync(); }
-            else if (ViewModel.ShowHealth) { a.Handled = true; await ViewModel.LoadHealthAsync(); }
+            if (ViewModel.ShowChanges)
+            {
+                a.Handled = true;
+                await Changes.RefreshAsync();
+            }
+            else if (ViewModel.ShowHealth)
+            {
+                a.Handled = true;
+                await ViewModel.LoadHealthAsync();
+            }
         };
         Root.KeyboardAccelerators.Add(refresh);
 
@@ -39,7 +75,11 @@ public sealed partial class MainWindow
         // Coming back from the editor is when files have changed: refresh then.
         Activated += async (_, e) =>
         {
-            if (e.WindowActivationState != WindowActivationState.Deactivated && ViewModel.RepositoryPath is not null && _initialized)
+            if (
+                e.WindowActivationState != WindowActivationState.Deactivated
+                && ViewModel.RepositoryPath is not null
+                && _initialized
+            )
                 await Changes.RefreshAsync();
         };
 
@@ -55,14 +95,17 @@ public sealed partial class MainWindow
     {
         ViewModel.Page = page;
         if (page == AppPage.Changes)
-            DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
-            {
-                // Straight to typing when there's something to commit; otherwise to the file list.
-                if (Changes.HasStaged && Changes.Summary.Length == 0)
-                    SummaryBox.Focus(FocusState.Keyboard);
-                else if (Changes.HasUnstaged)
-                    UnstagedList.Focus(FocusState.Keyboard);
-            });
+            DispatcherQueue.TryEnqueue(
+                DispatcherQueuePriority.Low,
+                () =>
+                {
+                    // Straight to typing when there's something to commit; otherwise to the file list.
+                    if (Changes.HasStaged && Changes.Summary.Length == 0)
+                        SummaryBox.Focus(FocusState.Keyboard);
+                    else if (Changes.HasUnstaged)
+                        UnstagedList.Focus(FocusState.Keyboard);
+                }
+            );
         else if (page == AppPage.History)
             DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, FocusSelectedCommit);
     }
@@ -88,10 +131,15 @@ public sealed partial class MainWindow
 
         static void Style(Button button, FontIcon icon, TextBlock text, bool active)
         {
-            var resources = Application.Current.Resources;
-            button.Background = active ? (Brush)resources["RaisedBrush"] : new SolidColorBrush(Colors.Transparent);
-            icon.Foreground = active ? (Brush)resources["VioletBrush"] : (Brush)resources["TextSecondaryBrush"];
-            text.Foreground = active ? (Brush)resources["TextPrimaryBrush"] : (Brush)resources["TextSecondaryBrush"];
+            button.Background = active
+                ? ThemeService.ChromeBrush("RaisedBrush")
+                : new SolidColorBrush(Colors.Transparent);
+            icon.Foreground = active
+                ? ThemeService.ChromeBrush("VioletBrush")
+                : ThemeService.ChromeBrush("TextSecondaryBrush");
+            text.Foreground = active
+                ? ThemeService.ChromeBrush("TextPrimaryBrush")
+                : ThemeService.ChromeBrush("TextSecondaryBrush");
             text.FontWeight = active ? Microsoft.UI.Text.FontWeights.SemiBold : Microsoft.UI.Text.FontWeights.Normal;
         }
     }
@@ -106,14 +154,17 @@ public sealed partial class MainWindow
             case nameof(ChangesViewModel.DiffRows) when Changes.KeepScroll && _changesDiffScroller is { } scroller:
                 // Staging a hunk re-renders the file; stay where the reader was.
                 var offset = _changesDiffOffset;
-                DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => scroller.ChangeView(null, offset, null, disableAnimation: true));
+                DispatcherQueue.TryEnqueue(
+                    DispatcherQueuePriority.Low,
+                    () => scroller.ChangeView(null, offset, null, disableAnimation: true)
+                );
                 break;
         }
     }
 
     private void UpdateChangesDiffToggle()
     {
-        var on = (Brush)Application.Current.Resources["ElevatedBrush"];
+        var on = ThemeService.ContentBrush("ElevatedBrush");
         var off = new SolidColorBrush(Colors.Transparent);
         ChangesSplitButton.Background = Changes.IsSplit ? on : off;
         ChangesUnifiedButton.Background = Changes.IsSplit ? off : on;
@@ -150,9 +201,15 @@ public sealed partial class MainWindow
             e.Handled = true;
             await Changes.ToggleAsync(file);
             // Keep the keyboard in the list the file came from, so Space-Space-Space walks it.
-            DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () => ((ListView)sender).Focus(FocusState.Keyboard));
+            DispatcherQueue.TryEnqueue(
+                DispatcherQueuePriority.Low,
+                () => ((ListView)sender).Focus(FocusState.Keyboard)
+            );
         }
-        else if (e.Key == Windows.System.VirtualKey.Delete && sender is ListView { SelectedItem: WorkingFileViewModel { IsStaged: false } })
+        else if (
+            e.Key == Windows.System.VirtualKey.Delete
+            && sender is ListView { SelectedItem: WorkingFileViewModel { IsStaged: false } }
+        )
         {
             e.Handled = true;
             await Changes.DiscardSelectedAsync();
@@ -177,7 +234,8 @@ public sealed partial class MainWindow
 
     private async void OnComposerKeyDown(object sender, KeyRoutedEventArgs e)
     {
-        var ctrl = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Control)
+        var ctrl = Microsoft
+            .UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Control)
             .HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down);
         if (e.Key == Windows.System.VirtualKey.Enter && ctrl)
         {
@@ -188,7 +246,10 @@ public sealed partial class MainWindow
         {
             // Enter in the one-line summary moves on to the description, like a form.
             e.Handled = true;
-            FocusManager.TryMoveFocus(FocusNavigationDirection.Next, new FindNextElementOptions { SearchRoot = Root.XamlRoot.Content });
+            FocusManager.TryMoveFocus(
+                FocusNavigationDirection.Next,
+                new FindNextElementOptions { SearchRoot = Root.XamlRoot.Content }
+            );
         }
     }
 

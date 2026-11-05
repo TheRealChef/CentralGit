@@ -1,3 +1,4 @@
+using CentralGit.App.Theming;
 using CentralGit.App.ViewModels;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
@@ -15,12 +16,17 @@ public sealed partial class MainWindow
     {
         ViewModel.ConfirmDestructive = ConfirmAsync;
         ViewModel.PromptText = PromptTextAsync;
-        Root.KeyboardAccelerators.Add(Accelerator(Windows.System.VirtualKey.B, (_, a) =>
-        {
-            a.Handled = true;
-            if (ViewModel.RepositoryPath is not null)
-                BranchFlyout.ShowAt(BranchButton);
-        }));
+        Root.KeyboardAccelerators.Add(
+            Accelerator(
+                Windows.System.VirtualKey.B,
+                (_, a) =>
+                {
+                    a.Handled = true;
+                    if (ViewModel.RepositoryPath is not null)
+                        BranchFlyout.ShowAt(BranchButton);
+                }
+            )
+        );
     }
 
     // ─── Picker ───────────────────────────────────────────────────────────
@@ -94,7 +100,10 @@ public sealed partial class MainWindow
 
     private void OnBranchReveal(object sender, RoutedEventArgs e)
     {
-        if (sender is FrameworkElement { Tag: string name } && ViewModel.Branches.FirstOrDefault(b => b.IsBranch && b.FullName == name) is { } row)
+        if (
+            sender is FrameworkElement { Tag: string name }
+            && ViewModel.Branches.FirstOrDefault(b => b.IsBranch && b.FullName == name) is { } row
+        )
             ViewModel.RevealBranch(row);
     }
 
@@ -129,6 +138,7 @@ public sealed partial class MainWindow
         var dialog = new ContentDialog
         {
             XamlRoot = Root.XamlRoot,
+            RequestedTheme = ThemeService.ContentTheme,
             Title = title,
             Content = new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap },
             PrimaryButtonText = button,
@@ -139,25 +149,44 @@ public sealed partial class MainWindow
     }
 
     /// <summary>A one-line text dialog; <paramref name="validate"/> returns an error sentence, or null when the text is fine.</summary>
-    private async Task<string?> PromptTextAsync(string title, string message, string initial, string button, Func<string, Task<string?>> validate)
+    private async Task<string?> PromptTextAsync(
+        string title,
+        string message,
+        string initial,
+        string button,
+        Func<string, Task<string?>> validate
+    )
     {
-        var box = new TextBox { Text = initial, FontFamily = (Microsoft.UI.Xaml.Media.FontFamily)Application.Current.Resources["MonoFont"] };
+        var box = new TextBox
+        {
+            Text = initial,
+            FontFamily = (Microsoft.UI.Xaml.Media.FontFamily)
+                Microsoft.UI.Xaml.Application.Current.Resources["MonoFont"],
+        };
         box.SelectAll();
         var error = new TextBlock
         {
             TextWrapping = TextWrapping.Wrap,
             FontSize = 12.5,
-            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["RedTextBrush"],
+            Foreground = ThemeService.ContentBrush("RedTextBrush"),
             Visibility = Visibility.Collapsed,
         };
         var panel = new StackPanel { Spacing = 10, MinWidth = 380 };
-        panel.Children.Add(new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap, Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextSecondaryBrush"] });
+        panel.Children.Add(
+            new TextBlock
+            {
+                Text = message,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = ThemeService.ContentBrush("TextSecondaryBrush"),
+            }
+        );
         panel.Children.Add(box);
         panel.Children.Add(error);
 
         var dialog = new ContentDialog
         {
             XamlRoot = Root.XamlRoot,
+            RequestedTheme = ThemeService.ContentTheme,
             Title = title,
             Content = panel,
             PrimaryButtonText = button,

@@ -1,0 +1,5 @@
+**/bin/
+**/obj/
+artifacts/
+# XAML belongs to XamlStyler (Settings.XamlStyler).
+**/*.xaml

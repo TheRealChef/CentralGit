@@ -1,5 +1,5 @@
 using CentralGit.App.Theming;
-using CentralGit.Core.Graph;
+using CentralGit.Domain.Graph;
 using Windows.UI;
 
 namespace CentralGit.App.Graph;
@@ -33,7 +33,10 @@ public sealed class GraphColorizer
 
         foreach (var parent in row.Parents)
         {
-            var color = parent.IsFirstParent ? dot : parent.Opened ? Palette.LaneDefault(parent.Lane) : Get(parent.Lane);
+            var color =
+                parent.IsFirstParent ? dot
+                : parent.Opened ? Palette.LaneDefault(parent.Lane)
+                : Get(parent.Lane);
             strokes.Add(new GraphStroke(row.Lane, parent.Lane, Upper: false, color));
             if (parent.Opened)
                 Set(parent.Lane, color);

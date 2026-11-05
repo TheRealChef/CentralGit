@@ -1,4 +1,6 @@
+using CentralGit.App.Theming;
 using CentralGit.App.ViewModels;
+using CentralGit.Application.Settings;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -11,7 +13,10 @@ namespace CentralGit.App;
 /// <summary>The repository switcher (Ctrl+P) and the Settings page.</summary>
 public sealed partial class MainWindow
 {
-    private static KeyboardAccelerator Accelerator(Windows.System.VirtualKey key, TypedEventHandler<KeyboardAccelerator, KeyboardAcceleratorInvokedEventArgs> invoked)
+    private static KeyboardAccelerator Accelerator(
+        Windows.System.VirtualKey key,
+        TypedEventHandler<KeyboardAccelerator, KeyboardAcceleratorInvokedEventArgs> invoked
+    )
     {
         var accelerator = new KeyboardAccelerator { Key = key, Modifiers = Windows.System.VirtualKeyModifiers.Control };
         accelerator.Invoked += invoked;
@@ -101,10 +106,11 @@ public sealed partial class MainWindow
 
     private void UpdateSettingsNav()
     {
-        var on = (Brush)Application.Current.Resources["RaisedBrush"];
+        var on = ThemeService.ContentBrush("RaisedBrush");
         var off = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
         SettingsRepositoriesNav.Background = Settings.IsRepositories ? on : off;
         SettingsAccountsNav.Background = Settings.IsAccounts ? on : off;
+        SettingsAppearanceNav.Background = Settings.IsAppearance ? on : off;
     }
 
     private void OnOpenSettings(object sender, RoutedEventArgs e) => OpenSettings(SettingsSection.Repositories);
@@ -121,6 +127,18 @@ public sealed partial class MainWindow
     {
         Settings.Section = SettingsSection.Accounts;
         UpdateSettingsNav();
+    }
+
+    private void OnSettingsAppearance(object sender, RoutedEventArgs e)
+    {
+        Settings.Section = SettingsSection.Appearance;
+        UpdateSettingsNav();
+    }
+
+    private void OnThemeChoice(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: string tag } && Enum.TryParse<AppTheme>(tag, out var theme))
+            Settings.SelectTheme(theme);
     }
 
     private async void OnAddScanFolder(object sender, RoutedEventArgs e)

@@ -1,7 +1,11 @@
 using CentralGit.App.Diff;
-using CentralGit.Core.Diff;
-using CentralGit.Core.Git;
-using CentralGit.Core.Text;
+using CentralGit.Application.Features.History;
+using CentralGit.Application.Git;
+using CentralGit.Domain.Branches;
+using CentralGit.Domain.Changes;
+using CentralGit.Domain.Commits;
+using CentralGit.Domain.Diff;
+using CentralGit.Domain.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CentralGit.App.ViewModels;
@@ -13,8 +17,7 @@ namespace CentralGit.App.ViewModels;
 /// </summary>
 public sealed partial class InspectorViewModel : ObservableObject
 {
-    private GitRunner? _git;
-    private string? _repoPath;
+    private IHistoryService? _history;
     private CancellationTokenSource? _commitCts;
     private CancellationTokenSource? _diffCts;
     private FileDiff? _currentDiff;
@@ -35,13 +38,24 @@ public sealed partial class InspectorViewModel : ObservableObject
     public CommitDetailsViewModel? Details
     {
         get => _details;
-        private set { if (SetProperty(ref _details, value)) { OnPropertyChanged(nameof(HasDetails)); OnPropertyChanged(nameof(HasNoDetails)); } }
+        private set
+        {
+            if (SetProperty(ref _details, value))
+            {
+                OnPropertyChanged(nameof(HasDetails));
+                OnPropertyChanged(nameof(HasNoDetails));
+            }
+        }
     }
 
     public bool HasDetails => _details is not null;
     public bool HasNoDetails => _details is null;
 
-    public string EmptyText { get => _emptyText; private set => SetProperty(ref _emptyText, value); }
+    public string EmptyText
+    {
+        get => _emptyText;
+        private set => SetProperty(ref _emptyText, value);
+    }
 
     public ChangedFileViewModel? SelectedFile
     {
@@ -61,12 +75,20 @@ public sealed partial class InspectorViewModel : ObservableObject
     public string DiffTitle => _selectedFile?.FileName ?? "";
     public string DiffDirectory => _selectedFile?.Model.Directory ?? "";
 
-    public IReadOnlyList<DiffRowViewModel> DiffRows { get => _diffRows; private set => SetProperty(ref _diffRows, value); }
+    public IReadOnlyList<DiffRowViewModel> DiffRows
+    {
+        get => _diffRows;
+        private set => SetProperty(ref _diffRows, value);
+    }
 
     public string DiffMessage
     {
         get => _diffMessage;
-        private set { if (SetProperty(ref _diffMessage, value)) OnPropertyChanged(nameof(HasDiffMessage)); }
+        private set
+        {
+            if (SetProperty(ref _diffMessage, value))
+                OnPropertyChanged(nameof(HasDiffMessage));
+        }
     }
 
     public bool HasDiffMessage => _diffMessage.Length > 0;
@@ -84,24 +106,27 @@ public sealed partial class InspectorViewModel : ObservableObject
         }
     }
 
-    public bool IsUnified { get => !_isSplit; set => IsSplit = !value; }
+    public bool IsUnified
+    {
+        get => !_isSplit;
+        set => IsSplit = !value;
+    }
 
     public string ChangePosition =>
         _changeStarts.Count == 0 ? "no changes"
         : _currentChange < 0 ? (_changeStarts.Count == 1 ? "1 change" : $"{_changeStarts.Count} changes")
         : $"{_currentChange + 1} / {_changeStarts.Count}";
 
-    public void Attach(GitRepository repository)
+    public void Attach(IHistoryService history)
     {
-        _git = repository.Git;
-        _repoPath = repository.Path;
+        _history = history;
     }
 
     public async Task ShowCommitAsync(string? hash)
     {
         _commitCts?.Cancel();
         _diffCts?.Cancel();
-        if (hash is null || _git is null || _repoPath is null)
+        if (hash is null || _history is not { } history)
         {
             Details = null;
             return;
@@ -112,22 +137,23 @@ public sealed partial class InspectorViewModel : ObservableObject
         {
             // Debounce: holding an arrow key should not spawn a git process per row.
             await Task.Delay(40, cts.Token);
-            var (git, repo) = (_git, _repoPath);
-            var details = await Task.Run(async () => new CommitDetailsViewModel(await CommitDetails.LoadAsync(git, repo, hash, cts.Token)), cts.Token);
+            var details = await Task.Run(
+                async () => new CommitDetailsViewModel(await history.GetCommitAsync(hash, cts.Token)),
+                cts.Token
+            );
             if (cts.IsCancellationRequested)
                 return;
 
             Details = details;
-            SelectedFile = details.Files.FirstOrDefault(f => f.Model.Path == _preferredPath) ?? details.Files.FirstOrDefault();
+            SelectedFile =
+                details.Files.FirstOrDefault(f => f.Model.Path == _preferredPath) ?? details.Files.FirstOrDefault();
             if (details.Files.Count == 0)
             {
                 DiffRows = [];
                 DiffMessage = "This commit changes no files.";
             }
         }
-        catch (OperationCanceledException)
-        {
-        }
+        catch (OperationCanceledException) { }
         catch (GitException e)
         {
             Details = null;
@@ -139,7 +165,7 @@ public sealed partial class InspectorViewModel : ObservableObject
     {
         _diffCts?.Cancel();
         _currentDiff = null;
-        if (file is null || _details is not { } details || _git is null || _repoPath is null)
+        if (file is null || _details is not { } details || _history is not { } history)
         {
             DiffRows = [];
             DiffMessage = "";
@@ -149,16 +175,13 @@ public sealed partial class InspectorViewModel : ObservableObject
         var cts = _diffCts = new CancellationTokenSource();
         try
         {
-            var (git, repo) = (_git, _repoPath);
-            var diff = await Task.Run(() => FileDiff.LoadAsync(git, repo, details.Model.DiffBase, details.Hash, file.Model, cts.Token), cts.Token);
+            var diff = await Task.Run(() => history.GetFileDiffAsync(details.Model, file.Model, cts.Token), cts.Token);
             if (cts.IsCancellationRequested)
                 return;
             _currentDiff = diff;
             await ShowDiffAsync(diff, file, cts.Token);
         }
-        catch (OperationCanceledException)
-        {
-        }
+        catch (OperationCanceledException) { }
         catch (GitException e)
         {
             DiffRows = [];
@@ -171,22 +194,30 @@ public sealed partial class InspectorViewModel : ObservableObject
         // A side-by-side view of a file that only exists on one side is half empty: use one column.
         var split = _isSplit && file.Model.Kind is not (ChangeKind.Added or ChangeKind.Deleted);
         var language = SyntaxHighlighter.FromPath(file.Model.Path);
-        var (rows, starts) = await Task.Run(() =>
-        {
-            var layout = split ? DiffLayout.Split(diff) : DiffLayout.Unified(diff);
-            var starts = new List<int>();
-            for (var i = 0; i < layout.Count; i++)
-                if (layout[i].ChangeBlock >= 0 && (i == 0 || layout[i - 1].ChangeBlock != layout[i].ChangeBlock))
-                    starts.Add(i);
-            return (DiffRowViewModel.Build(layout, split, language), (IReadOnlyList<int>)starts);
-        }, ct);
+        var (rows, starts) = await Task.Run(
+            () =>
+            {
+                var layout = split ? DiffLayout.Split(diff) : DiffLayout.Unified(diff);
+                var starts = new List<int>();
+                for (var i = 0; i < layout.Count; i++)
+                    if (layout[i].ChangeBlock >= 0 && (i == 0 || layout[i - 1].ChangeBlock != layout[i].ChangeBlock))
+                        starts.Add(i);
+                return (DiffRowViewModel.Build(layout, split, language), (IReadOnlyList<int>)starts);
+            },
+            ct
+        );
 
         if (ct.IsCancellationRequested)
             return;
 
         DiffMessage =
             diff.IsBinary ? "Binary file — no text diff to show."
-            : diff.Hunks.Count == 0 ? (file.Model.Kind == ChangeKind.Renamed ? "Renamed without content changes." : "No text changes (mode or whitespace only).")
+            : diff.Hunks.Count == 0
+                ? (
+                    file.Model.Kind == ChangeKind.Renamed
+                        ? "Renamed without content changes."
+                        : "No text changes (mode or whitespace only)."
+                )
             : "";
         _changeStarts = starts;
         _currentChange = -1;

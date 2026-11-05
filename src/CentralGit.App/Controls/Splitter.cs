@@ -27,25 +27,46 @@ public sealed partial class Splitter : Grid
         Children.Add(_line);
         ApplyOrientation();
         Idle();
+        ActualThemeChanged += (_, _) => Idle();
 
-        PointerEntered += (_, _) => _line.Background = (Brush)Application.Current.Resources["VioletBrush"];
-        PointerExited += (_, _) => { if (_start is null) Idle(); };
+        PointerEntered += (_, _) => _line.Background = CentralGit.App.Theming.ThemeService.Brush("VioletBrush", this);
+        PointerExited += (_, _) =>
+        {
+            if (_start is null)
+                Idle();
+        };
         PointerPressed += OnPressed;
         PointerMoved += OnMoved;
         PointerReleased += OnReleased;
         PointerCaptureLost += (_, _) => End();
-        DoubleTapped += (_, e) => { ResetRequested?.Invoke(); e.Handled = true; };
+        DoubleTapped += (_, e) =>
+        {
+            ResetRequested?.Invoke();
+            e.Handled = true;
+        };
     }
 
     /// <summary>Horizontal: a line across, dragged up and down. Vertical: a line down, dragged sideways.</summary>
     public Orientation Orientation
     {
         get => _orientation;
-        set { _orientation = value; ApplyOrientation(); }
+        set
+        {
+            _orientation = value;
+            ApplyOrientation();
+        }
     }
 
     /// <summary>When false the handle is invisible until hovered (for edges that already draw a seam).</summary>
-    public bool ShowLine { get => _showLine; set { _showLine = value; Idle(); } }
+    public bool ShowLine
+    {
+        get => _showLine;
+        set
+        {
+            _showLine = value;
+            Idle();
+        }
+    }
 
     private bool _showLine = true;
 
@@ -56,11 +77,15 @@ public sealed partial class Splitter : Grid
         _line.Height = vertical ? double.NaN : 1;
         _line.HorizontalAlignment = vertical ? HorizontalAlignment.Center : HorizontalAlignment.Stretch;
         _line.VerticalAlignment = vertical ? VerticalAlignment.Stretch : VerticalAlignment.Center;
-        ProtectedCursor = InputSystemCursor.Create(vertical ? InputSystemCursorShape.SizeWestEast : InputSystemCursorShape.SizeNorthSouth);
+        ProtectedCursor = InputSystemCursor.Create(
+            vertical ? InputSystemCursorShape.SizeWestEast : InputSystemCursorShape.SizeNorthSouth
+        );
     }
 
     private void Idle() =>
-        _line.Background = _showLine ? (Brush)Application.Current.Resources["SeamBrush"] : new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+        _line.Background = _showLine
+            ? CentralGit.App.Theming.ThemeService.Brush("SeamBrush", this)
+            : new SolidColorBrush(Microsoft.UI.Colors.Transparent);
 
     private double Position(PointerRoutedEventArgs e)
     {

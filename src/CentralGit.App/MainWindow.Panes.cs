@@ -1,5 +1,6 @@
-using CentralGit.App.Services;
 using CentralGit.App.ViewModels;
+using CentralGit.Application.Ports;
+using CentralGit.Application.Settings;
 using Microsoft.UI.Xaml;
 
 namespace CentralGit.App;
@@ -10,11 +11,14 @@ namespace CentralGit.App;
 /// </summary>
 public sealed partial class MainWindow
 {
-    private const double MinSidebar = 170, MaxSidebar = 420;
-    private const double MinDetails = 240, MinChangesFiles = 280, MinDiff = 320;
+    private const double MinSidebar = 170,
+        MaxSidebar = 420;
+    private const double MinDetails = 240,
+        MinChangesFiles = 280,
+        MinDiff = 320;
     private const double MinListShare = 0.15;
 
-    private PaneSizes _panes = SettingsStore.Current.Panes;
+    private PaneSizes _panes;
 
     private void InitializePanes()
     {
@@ -45,10 +49,14 @@ public sealed partial class MainWindow
         ChangesFilesSplitter.DragDelta += d =>
         {
             var max = Math.Max(MinChangesFiles, ChangesPage.ActualWidth - MinDiff);
-            _panes = _panes with { ChangesFiles = Math.Clamp(ChangesFilesColumn.ActualWidth + d, MinChangesFiles, max) };
+            _panes = _panes with
+            {
+                ChangesFiles = Math.Clamp(ChangesFilesColumn.ActualWidth + d, MinChangesFiles, max),
+            };
             ChangesFilesColumn.Width = new GridLength(_panes.ChangesFiles);
         };
-        ChangesFilesSplitter.ResetRequested += () => Reset(_panes with { ChangesFiles = PaneSizes.DefaultChangesFiles });
+        ChangesFilesSplitter.ResetRequested += () =>
+            Reset(_panes with { ChangesFiles = PaneSizes.DefaultChangesFiles });
 
         StagedSplitter.DragDelta += d =>
         {
@@ -83,7 +91,7 @@ public sealed partial class MainWindow
     private void SavePanes()
     {
         var panes = _panes;
-        SettingsStore.Update(s => s with { Panes = panes });
+        _settings.Update(s => s with { Panes = panes });
     }
 
     /// <summary>Focus mode hides the sidebar and details, and their handles with them.</summary>

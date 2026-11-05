@@ -1,7 +1,7 @@
 using System.Globalization;
 using CentralGit.App.Theming;
-using CentralGit.Core.Diff;
-using CentralGit.Core.Text;
+using CentralGit.Domain.Diff;
+using CentralGit.Domain.Text;
 using Windows.UI;
 
 namespace CentralGit.App.Diff;
@@ -43,22 +43,33 @@ public sealed class DiffRowViewModel
     public bool CanDiscardHunk { get; private init; }
 
     public static IReadOnlyList<DiffRowViewModel> Build(
-        IReadOnlyList<DiffRow> rows, bool split, SyntaxLanguage language, HunkActions actions = HunkActions.None) =>
-        rows.Select(r => r.Kind == DiffRowKind.Lines
-                ? split ? SplitRow(r, language) : UnifiedRow(r, language)
-                : new DiffRowViewModel(r.Kind, split, r.Text)
-                {
-                    HunkIndex = r.Hunk,
-                    HunkRange = r.Range,
-                    HunkSection = r.Section.Length > 0 ? "in " + r.Section : "",
-                    HunkActionLabel = r.Kind != DiffRowKind.HunkHeader ? "" : actions switch
+        IReadOnlyList<DiffRow> rows,
+        bool split,
+        SyntaxLanguage language,
+        HunkActions actions = HunkActions.None
+    ) =>
+        rows.Select(r =>
+                r.Kind == DiffRowKind.Lines
+                    ? split
+                        ? SplitRow(r, language)
+                        : UnifiedRow(r, language)
+                    : new DiffRowViewModel(r.Kind, split, r.Text)
                     {
-                        HunkActions.Stage => "Stage hunk",
-                        HunkActions.Unstage => "Unstage hunk",
-                        _ => "",
-                    },
-                    CanDiscardHunk = r.Kind == DiffRowKind.HunkHeader && actions == HunkActions.Stage,
-                })
+                        HunkIndex = r.Hunk,
+                        HunkRange = r.Range,
+                        HunkSection = r.Section.Length > 0 ? "in " + r.Section : "",
+                        HunkActionLabel =
+                            r.Kind != DiffRowKind.HunkHeader
+                                ? ""
+                                : actions switch
+                                {
+                                    HunkActions.Stage => "Stage hunk",
+                                    HunkActions.Unstage => "Unstage hunk",
+                                    _ => "",
+                                },
+                        CanDiscardHunk = r.Kind == DiffRowKind.HunkHeader && actions == HunkActions.Stage,
+                    }
+            )
             .ToList();
 
     private static DiffRowViewModel SplitRow(DiffRow row, SyntaxLanguage language)
@@ -89,7 +100,12 @@ public sealed class DiffRowViewModel
             Left = code,
             LeftBackground = back,
             LeftGutter = gutter,
-            Sign = cell.Line.Kind switch { DiffLineKind.Added => "+", DiffLineKind.Deleted => "−", _ => "" },
+            Sign = cell.Line.Kind switch
+            {
+                DiffLineKind.Added => "+",
+                DiffLineKind.Deleted => "−",
+                _ => "",
+            },
             SignColor = cell.Line.Kind == DiffLineKind.Added ? Palette.GreenText : Palette.RedText,
         };
     }
@@ -101,9 +117,21 @@ public sealed class DiffRowViewModel
 
         return cell.Line.Kind switch
         {
-            DiffLineKind.Added => (CodeLine.Build(cell.Line.Text, language, cell.Changes, Palette.AddedChange), Palette.AddedLine, Palette.AddedGutter),
-            DiffLineKind.Deleted => (CodeLine.Build(cell.Line.Text, language, cell.Changes, Palette.DeletedChange), Palette.DeletedLine, Palette.DeletedGutter),
-            _ => (CodeLine.Build(cell.Line.Text, language, [], Palette.Transparent), Palette.Transparent, Palette.Transparent),
+            DiffLineKind.Added => (
+                CodeLine.Build(cell.Line.Text, language, cell.Changes, Palette.AddedChange),
+                Palette.AddedLine,
+                Palette.AddedGutter
+            ),
+            DiffLineKind.Deleted => (
+                CodeLine.Build(cell.Line.Text, language, cell.Changes, Palette.DeletedChange),
+                Palette.DeletedLine,
+                Palette.DeletedGutter
+            ),
+            _ => (
+                CodeLine.Build(cell.Line.Text, language, [], Palette.Transparent),
+                Palette.Transparent,
+                Palette.Transparent
+            ),
         };
     }
 
@@ -111,4 +139,9 @@ public sealed class DiffRowViewModel
 }
 
 /// <summary>What a hunk header offers: nothing (history), stage + discard (unstaged), unstage (staged).</summary>
-public enum HunkActions { None, Stage, Unstage }
+public enum HunkActions
+{
+    None,
+    Stage,
+    Unstage,
+}

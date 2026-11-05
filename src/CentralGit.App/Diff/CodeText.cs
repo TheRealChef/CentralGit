@@ -14,7 +14,11 @@ namespace CentralGit.App.Diff;
 public static class CodeText
 {
     public static readonly DependencyProperty LineProperty = DependencyProperty.RegisterAttached(
-        "Line", typeof(CodeLine), typeof(CodeText), new PropertyMetadata(null, OnLineChanged));
+        "Line",
+        typeof(CodeLine),
+        typeof(CodeText),
+        new PropertyMetadata(null, OnLineChanged)
+    );
 
     public static CodeLine? GetLine(TextBlock element) => (CodeLine?)element.GetValue(LineProperty);
 
@@ -39,11 +43,17 @@ public static class CodeText
             return;
 
         foreach (var run in line.Runs)
-            block.Inlines.Add(new Run { Text = line.Text.Substring(run.Start, run.Length), Foreground = Brush(run.Color) });
+            block.Inlines.Add(
+                new Run { Text = line.Text.Substring(run.Start, run.Length), Foreground = Brush(run.Color) }
+            );
 
         if (line.Highlights.Count > 0)
         {
-            var highlighter = new TextHighlighter { Background = Brush(line.HighlightColor), Foreground = Brush(Theming.Palette.TextPrimary) };
+            var highlighter = new TextHighlighter
+            {
+                Background = Brush(line.HighlightColor),
+                Foreground = Brush(Theming.Palette.TextPrimary),
+            };
             foreach (var h in line.Highlights)
                 highlighter.Ranges.Add(new TextRange { StartIndex = h.Start, Length = h.Length });
             block.TextHighlighters.Add(highlighter);

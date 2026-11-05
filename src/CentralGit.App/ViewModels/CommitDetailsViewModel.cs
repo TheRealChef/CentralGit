@@ -1,6 +1,9 @@
 using System.Globalization;
 using CentralGit.App.Theming;
-using CentralGit.Core.Git;
+using CentralGit.Application.Git;
+using CentralGit.Domain.Branches;
+using CentralGit.Domain.Changes;
+using CentralGit.Domain.Commits;
 using Windows.UI;
 
 namespace CentralGit.App.ViewModels;
@@ -19,22 +22,31 @@ public sealed class CommitDetailsViewModel
         AuthorInitials = Initials(d.Author.Name);
         AuthorDate = $"{FormatDate(d.Author.When)} · {RelativeTime.Format(d.Author.When, DateTimeOffset.Now)}";
 
-        var sameCommitter = d.Committer.Email.Equals(d.Author.Email, StringComparison.OrdinalIgnoreCase)
-                            && Math.Abs((d.Committer.When - d.Author.When).TotalMinutes) < 1;
+        var sameCommitter =
+            d.Committer.Email.Equals(d.Author.Email, StringComparison.OrdinalIgnoreCase)
+            && Math.Abs((d.Committer.When - d.Author.When).TotalMinutes) < 1;
         CommitterLine = sameCommitter ? "" : $"Committed by {d.Committer.Name} · {FormatDate(d.Committer.When)}";
         HasCommitter = !sameCommitter;
 
         Hash = d.Hash;
         ShortHash = d.Hash[..Math.Min(10, d.Hash.Length)];
         Parents = d.Parents.Select(p => new ParentViewModel(p)).ToList();
-        ParentsLabel = d.Parents.Count switch { 0 => "Root commit", 1 => "Parent", _ => $"Merge of {d.Parents.Count} parents · diff vs first" };
+        ParentsLabel = d.Parents.Count switch
+        {
+            0 => "Root commit",
+            1 => "Parent",
+            _ => $"Merge of {d.Parents.Count} parents · diff vs first",
+        };
 
         (SignatureText, SignatureColor) = d.Signature switch
         {
             SignatureState.Good => ($"Verified signature{Signer(d)}", Palette.GreenText),
             SignatureState.GoodUnknownValidity => ($"Signed, key not trusted{Signer(d)}", Palette.OrangeText),
             SignatureState.Bad => ("Bad signature", Palette.RedText),
-            SignatureState.ExpiredSignature or SignatureState.ExpiredKey => ($"Signed with an expired key{Signer(d)}", Palette.OrangeText),
+            SignatureState.ExpiredSignature or SignatureState.ExpiredKey => (
+                $"Signed with an expired key{Signer(d)}",
+                Palette.OrangeText
+            ),
             SignatureState.RevokedKey => ($"Signed with a revoked key{Signer(d)}", Palette.RedText),
             SignatureState.CannotCheck => ("Signed — cannot verify (key missing)", Palette.TextMuted),
             _ => ("Not signed", Palette.TextMuted),
@@ -106,8 +118,14 @@ public sealed class ChangedFileViewModel
             ChangeKind.TypeChanged => ("T", Palette.OrangeText),
             _ => ("M", Palette.TextSecondary),
         };
-        AddedText = f.IsBinary ? "bin" : f.Added > 0 ? $"+{f.Added}" : "";
-        DeletedText = f.IsBinary ? "" : f.Deleted > 0 ? $"−{f.Deleted}" : "";
+        AddedText =
+            f.IsBinary ? "bin"
+            : f.Added > 0 ? $"+{f.Added}"
+            : "";
+        DeletedText =
+            f.IsBinary ? ""
+            : f.Deleted > 0 ? $"−{f.Deleted}"
+            : "";
     }
 
     public ChangedFile Model { get; }

@@ -1,9 +1,14 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/CentralGit.App/CentralGit.App.csproj" />
-    <Project Path="src/CentralGit.Core/CentralGit.Core.csproj" />
+    <Project Path="src/CentralGit.Application/CentralGit.Application.csproj" />
+    <Project Path="src/CentralGit.Domain/CentralGit.Domain.csproj" />
+    <Project Path="src/CentralGit.Infrastructure/CentralGit.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/CentralGit.Core.Tests/CentralGit.Core.Tests.csproj" />
+    <Project Path="tests/CentralGit.Application.Tests/CentralGit.Application.Tests.csproj" />
+    <Project Path="tests/CentralGit.Architecture.Tests/CentralGit.Architecture.Tests.csproj" />
+    <Project Path="tests/CentralGit.Domain.Tests/CentralGit.Domain.Tests.csproj" />
+    <Project Path="tests/CentralGit.Infrastructure.Tests/CentralGit.Infrastructure.Tests.csproj" />
   </Folder>
 </Solution>
