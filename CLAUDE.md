@@ -35,6 +35,7 @@ Clean architecture, four projects; the dependency rule is enforced by `tests/Cen
 ## Visual language (see `design/Foundations.dc.html`)
 
 - Surfaces by tone: deep #17191D, window #1D2025, surface #23262C, raised #2A2E35, elevated #363B43. Seams #101114 instead of light borders.
+- Surface system, low to high: `RecessedBrush` (code/diff wells) < `SurfaceBrush` (content) < `PanelBrush` (docked inspector) < `ToolbarBrush` (`ToolbarStyle`: bars over content, seam below) < Raised/Elevated (chips, selected nav). Raised surfaces get a `HighlightBrush` top hairline (cards, inspector); `BandStyle` for header bands inside content. No shadows, gradients or nested cards. `Splitter` fades in a violet line + grip on hover (`ShowGrip` keeps a faint grip at rest).
 - Accents, one meaning each: violet = you/HEAD/selection/primary; orange = needs attention; green = success/additions; teal = trunk/running; red = failure/destructive.
 - Text: #EDEBE8 / #ADB1B9 / muted #8B929D (4.5:1 on surface).
 - Buttons use our own `GhostButtonStyle` template; WinAppSDK 2.x ignores the classic lightweight-styling brush keys for Button.

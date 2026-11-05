@@ -24,6 +24,15 @@ public sealed record ThemeColors
     public required Color Border { get; init; }
     public required Color BorderHover { get; init; }
     public required Color Code { get; init; }
+
+    /// <summary>Docked panels that sit one step above the content (the History inspector).</summary>
+    public required Color Panel { get; init; }
+
+    /// <summary>Bars that control the content below them (pane toolbars, the diff header): slightly raised.</summary>
+    public required Color Toolbar { get; init; }
+
+    /// <summary>The lit top edge of a raised surface: a translucent hairline, never a shadow.</summary>
+    public required Color Highlight { get; init; }
     public required Color HunkHeader { get; init; }
     public required Color Filler { get; init; }
     public required Color Scrim { get; init; }
@@ -90,6 +99,9 @@ public sealed record ThemeColors
         Border = Hex(0x2E3239),
         BorderHover = Hex(0x3A3F47),
         Code = Hex(0x202328),
+        Panel = Hex(0x25282E),
+        Toolbar = Hex(0x282B31),
+        Highlight = Hex(0xFFFFFF, 0x0C),
         HunkHeader = Hex(0x262A31),
         Filler = Hex(0x1E2126),
         Scrim = Hex(0x101114, 0x99),
@@ -147,6 +159,9 @@ public sealed record ThemeColors
         Border = Hex(0xCFCBC4),
         BorderHover = Hex(0xB9B4AC),
         Code = Hex(0xF8F7F4),
+        Panel = Hex(0xF0EEE9),
+        Toolbar = Hex(0xEDEBE6),
+        Highlight = Hex(0xFFFFFF, 0xB3),
         HunkHeader = Hex(0xE9E6E0),
         Filler = Hex(0xEEECE7),
         Scrim = Hex(0x2A2620, 0x66),

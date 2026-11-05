@@ -1,3 +1,4 @@
+using CentralGit.App.Theming;
 using Microsoft.UI.Input;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -8,14 +9,22 @@ namespace CentralGit.App.Controls;
 
 /// <summary>
 /// A thin drag handle (WinUI has no GridSplitter). Horizontal handles resize rows, vertical
-/// ones resize columns. It only reports movement; the owner decides what to resize. The
-/// seam lights up violet on hover; double-click asks the owner to reset to the default size.
+/// ones resize columns. It only reports movement; the owner decides what to resize.
+/// Idle it is a seam (or nothing); on hover a violet line and a grip fade in, and the line goes
+/// solid while dragging. Double-click asks the owner to reset to the default size.
 /// </summary>
 public sealed partial class Splitter : Grid
 {
+    private static readonly TimeSpan Fade = TimeSpan.FromMilliseconds(120);
+
     private double? _start;
+    private bool _hover;
     private Orientation _orientation = Orientation.Horizontal;
+    private bool _showLine = true;
+    private bool _showGrip;
     private readonly Border _line = new();
+    private readonly Border _accent = new() { Opacity = 0 };
+    private readonly Border _grip = new() { Opacity = 0, CornerRadius = new CornerRadius(2) };
 
     public event Action<double>? DragDelta;
     public event Action? DragCompleted;
@@ -24,16 +33,24 @@ public sealed partial class Splitter : Grid
     public Splitter()
     {
         Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent); // hit-testable
+        _accent.OpacityTransition = new ScalarTransition { Duration = Fade };
+        _grip.OpacityTransition = new ScalarTransition { Duration = Fade };
         Children.Add(_line);
+        Children.Add(_accent);
+        Children.Add(_grip);
         ApplyOrientation();
-        Idle();
-        ActualThemeChanged += (_, _) => Idle();
+        Refresh();
+        ActualThemeChanged += (_, _) => Refresh();
 
-        PointerEntered += (_, _) => _line.Background = CentralGit.App.Theming.ThemeService.Brush("VioletBrush", this);
+        PointerEntered += (_, _) =>
+        {
+            _hover = true;
+            Refresh();
+        };
         PointerExited += (_, _) =>
         {
-            if (_start is null)
-                Idle();
+            _hover = false;
+            Refresh();
         };
         PointerPressed += OnPressed;
         PointerMoved += OnMoved;
@@ -64,28 +81,53 @@ public sealed partial class Splitter : Grid
         set
         {
             _showLine = value;
-            Idle();
+            Refresh();
         }
     }
 
-    private bool _showLine = true;
+    /// <summary>Keep a faint grip visible at rest (for a handle that is a gap of its own, not an edge).</summary>
+    public bool ShowGrip
+    {
+        get => _showGrip;
+        set
+        {
+            _showGrip = value;
+            Refresh();
+        }
+    }
 
     private void ApplyOrientation()
     {
         var vertical = _orientation == Orientation.Vertical;
-        _line.Width = vertical ? 1 : double.NaN;
-        _line.Height = vertical ? double.NaN : 1;
-        _line.HorizontalAlignment = vertical ? HorizontalAlignment.Center : HorizontalAlignment.Stretch;
-        _line.VerticalAlignment = vertical ? VerticalAlignment.Stretch : VerticalAlignment.Center;
+        foreach (var line in new[] { _line, _accent })
+        {
+            line.Width = vertical ? (line == _accent ? 2 : 1) : double.NaN;
+            line.Height = vertical ? double.NaN : (line == _accent ? 2 : 1);
+            line.HorizontalAlignment = vertical ? HorizontalAlignment.Center : HorizontalAlignment.Stretch;
+            line.VerticalAlignment = vertical ? VerticalAlignment.Stretch : VerticalAlignment.Center;
+        }
+        _grip.Width = vertical ? 4 : 32;
+        _grip.Height = vertical ? 32 : 4;
+        _grip.HorizontalAlignment = HorizontalAlignment.Center;
+        _grip.VerticalAlignment = VerticalAlignment.Center;
         ProtectedCursor = InputSystemCursor.Create(
             vertical ? InputSystemCursorShape.SizeWestEast : InputSystemCursorShape.SizeNorthSouth
         );
     }
 
-    private void Idle() =>
+    /// <summary>Rest, hover and drag, from the theme of wherever the handle sits.</summary>
+    private void Refresh()
+    {
+        var dragging = _start is not null;
+        var active = dragging || _hover;
         _line.Background = _showLine
-            ? CentralGit.App.Theming.ThemeService.Brush("SeamBrush", this)
+            ? ThemeService.Brush("SeamBrush", this)
             : new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+        _accent.Background = ThemeService.Brush(dragging ? "VioletBrush" : "SplitterHoverBrush", this);
+        _accent.Opacity = active ? 1 : 0;
+        _grip.Background = ThemeService.Brush(active ? "VioletBrush" : "SplitterGripBrush", this);
+        _grip.Opacity = active || _showGrip ? 1 : 0;
+    }
 
     private double Position(PointerRoutedEventArgs e)
     {
@@ -97,6 +139,7 @@ public sealed partial class Splitter : Grid
     {
         _start = Position(e);
         CapturePointer(e.Pointer);
+        Refresh();
         e.Handled = true;
     }
 
@@ -122,7 +165,7 @@ public sealed partial class Splitter : Grid
         if (_start is null)
             return;
         _start = null;
-        Idle();
+        Refresh();
         DragCompleted?.Invoke();
     }
 }

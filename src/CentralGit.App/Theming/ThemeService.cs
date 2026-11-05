@@ -157,6 +157,17 @@ public static class ThemeService
         B("DividerBrush", t.Divider);
         B("ControlBorderBrush", t.Border);
         B("CodeBrush", t.Code);
+
+        // Surface system, low to high: Recessed (code wells) < Surface (content) < Panel (docked
+        // inspector) < Toolbar (bars over content) < Raised/Elevated (chips, selected nav).
+        // Raised surfaces get a Highlight hairline on top; seams separate, nothing casts a shadow.
+        B("RecessedBrush", t.Code);
+        B("PanelBrush", t.Panel);
+        B("ToolbarBrush", t.Toolbar);
+        B("HighlightBrush", t.Highlight);
+        B("BandBrush", alpha(t.Overlay, t.IsDark ? 0.022 : 0.028));
+        B("SplitterHoverBrush", alpha(t.Violet, 0.55));
+        B("SplitterGripBrush", t.IsDark ? t.TextFaint : t.BorderHover);
         B("HunkHeaderBrush", t.HunkHeader);
         B("FillerBrush", t.Filler);
         B("ScrimBrush", t.Scrim);
@@ -196,10 +207,12 @@ public static class ThemeService
         B("ButtonForegroundPressed", t.TextPrimary);
         B("ButtonForegroundDisabled", t.IsDark ? Color.FromArgb(255, 0x5A, 0x60, 0x6B) : t.TextFaint);
 
-        B("ListViewItemBackgroundPointerOver", alpha(t.Overlay, t.IsDark ? 0.06 : 0.05));
-        B("ListViewItemBackgroundSelected", alpha(t.Violet, t.IsDark ? 0.17 : 0.15));
-        B("ListViewItemBackgroundSelectedPointerOver", alpha(t.Violet, t.IsDark ? 0.21 : 0.19));
-        B("ListViewItemBackgroundSelectedPressed", alpha(t.Violet, t.IsDark ? 0.25 : 0.23));
+        // Selection: a restrained violet wash plus the violet indicator pill; hover stays neutral.
+        B("ListViewItemBackgroundPointerOver", alpha(t.Overlay, t.IsDark ? 0.05 : 0.04));
+        B("ListViewItemBackgroundPressed", alpha(t.Overlay, t.IsDark ? 0.08 : 0.07));
+        B("ListViewItemBackgroundSelected", alpha(t.Violet, t.IsDark ? 0.14 : 0.12));
+        B("ListViewItemBackgroundSelectedPointerOver", alpha(t.Violet, t.IsDark ? 0.18 : 0.16));
+        B("ListViewItemBackgroundSelectedPressed", alpha(t.Violet, t.IsDark ? 0.22 : 0.20));
         B("ListViewItemSelectionIndicatorBrush", t.Violet);
 
         var field = t.IsDark ? t.Window : t.Code;

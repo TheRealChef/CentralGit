@@ -25,6 +25,13 @@
             <SolidColorBrush x:Key="DividerBrush" />
             <SolidColorBrush x:Key="ControlBorderBrush" />
             <SolidColorBrush x:Key="CodeBrush" />
+            <SolidColorBrush x:Key="RecessedBrush" />
+            <SolidColorBrush x:Key="PanelBrush" />
+            <SolidColorBrush x:Key="ToolbarBrush" />
+            <SolidColorBrush x:Key="HighlightBrush" />
+            <SolidColorBrush x:Key="BandBrush" />
+            <SolidColorBrush x:Key="SplitterHoverBrush" />
+            <SolidColorBrush x:Key="SplitterGripBrush" />
             <SolidColorBrush x:Key="HunkHeaderBrush" />
             <SolidColorBrush x:Key="FillerBrush" />
             <SolidColorBrush x:Key="ScrimBrush" />
@@ -62,6 +69,7 @@
             <SolidColorBrush x:Key="ButtonForegroundPressed" />
             <SolidColorBrush x:Key="ButtonForegroundDisabled" />
             <SolidColorBrush x:Key="ListViewItemBackgroundPointerOver" />
+            <SolidColorBrush x:Key="ListViewItemBackgroundPressed" />
             <SolidColorBrush x:Key="ListViewItemBackgroundSelected" />
             <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" />
             <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" />
@@ -94,6 +102,13 @@
             <SolidColorBrush x:Key="DividerBrush" />
             <SolidColorBrush x:Key="ControlBorderBrush" />
             <SolidColorBrush x:Key="CodeBrush" />
+            <SolidColorBrush x:Key="RecessedBrush" />
+            <SolidColorBrush x:Key="PanelBrush" />
+            <SolidColorBrush x:Key="ToolbarBrush" />
+            <SolidColorBrush x:Key="HighlightBrush" />
+            <SolidColorBrush x:Key="BandBrush" />
+            <SolidColorBrush x:Key="SplitterHoverBrush" />
+            <SolidColorBrush x:Key="SplitterGripBrush" />
             <SolidColorBrush x:Key="HunkHeaderBrush" />
             <SolidColorBrush x:Key="FillerBrush" />
             <SolidColorBrush x:Key="ScrimBrush" />
@@ -131,6 +146,7 @@
             <SolidColorBrush x:Key="ButtonForegroundPressed" />
             <SolidColorBrush x:Key="ButtonForegroundDisabled" />
             <SolidColorBrush x:Key="ListViewItemBackgroundPointerOver" />
+            <SolidColorBrush x:Key="ListViewItemBackgroundPressed" />
             <SolidColorBrush x:Key="ListViewItemBackgroundSelected" />
             <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPointerOver" />
             <SolidColorBrush x:Key="ListViewItemBackgroundSelectedPressed" />
@@ -178,7 +194,11 @@
                         <Border x:Name="Overlay"
                                 Background="{ThemeResource OverlayBrush}"
                                 Opacity="0"
-                                CornerRadius="{TemplateBinding CornerRadius}" />
+                                CornerRadius="{TemplateBinding CornerRadius}">
+                            <Border.OpacityTransition>
+                                <ScalarTransition Duration="0:0:0.12" />
+                            </Border.OpacityTransition>
+                        </Border>
                         <ContentPresenter x:Name="Presenter"
                                           Content="{TemplateBinding Content}"
                                           ContentTemplate="{TemplateBinding ContentTemplate}"
@@ -237,7 +257,11 @@
                         <Border x:Name="Overlay"
                                 Background="{ThemeResource OverlayBrush}"
                                 Opacity="0"
-                                CornerRadius="{TemplateBinding CornerRadius}" />
+                                CornerRadius="{TemplateBinding CornerRadius}">
+                            <Border.OpacityTransition>
+                                <ScalarTransition Duration="0:0:0.12" />
+                            </Border.OpacityTransition>
+                        </Border>
                         <ContentPresenter Content="{TemplateBinding Content}"
                                           ContentTemplate="{TemplateBinding ContentTemplate}"
                                           Padding="{TemplateBinding Padding}"
@@ -347,9 +371,36 @@
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     </Style>
 
+    <!--
+        Surface system: Recessed (code wells) < Surface (content) < Panel (docked inspector)
+        < Toolbar (bars that control the content under them) < Raised/Elevated (chips, selected nav).
+        A toolbar is one tone up from its content with a seam underneath; nothing casts a shadow.
+    -->
+    <Style x:Key="ToolbarStyle" TargetType="Grid">
+        <Setter Property="Background" Value="{ThemeResource ToolbarBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource SeamBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+
+    <!--  A thin header band inside content (table column headers, section headers in a panel).  -->
+    <Style x:Key="BandStyle" TargetType="Grid">
+        <Setter Property="Background" Value="{ThemeResource BandBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource DividerBrush}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+    </Style>
+
+    <!--  Diff lists; each sits in a recessed well (Background RecessedBrush, set on the list and its column) under a ToolbarStyle header.  -->
+    <Style x:Key="DiffListStyle" TargetType="ListView">
+        <Setter Property="ItemContainerStyle" Value="{StaticResource DiffItemStyle}" />
+        <Setter Property="SelectionMode" Value="None" />
+        <Setter Property="IsItemClickEnabled" Value="False" />
+    </Style>
+
     <Style x:Key="CardStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource SurfaceBrush}" />
-        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="BorderBrush" Value="{ThemeResource HighlightBrush}" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
         <Setter Property="Padding" Value="20,16" />
     </Style>
 
