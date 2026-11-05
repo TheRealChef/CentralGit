@@ -4,7 +4,7 @@ public sealed partial class ShellViewModel
 {
     /// <summary>
     /// After a theme switch: view models captured their colors when they were built, so rebuild
-    /// what's on screen (history, branch tree, the open commit, Changes and Health).
+    /// what's on screen (history, branch tree, the open commit, Changes, Health and Recovery).
     /// </summary>
     public async Task RefreshColorsAsync()
     {
@@ -19,5 +19,9 @@ public sealed partial class ShellViewModel
             await LoadHealthAsync();
         else
             Health.Clear(); // rebuilt with the new colors when next shown
+        Recovery.Recolor();
+        await FileHistory.RecolorAsync();
+        if (Page == AppPage.Compare)
+            await Compare.CompareAsync();
     }
 }

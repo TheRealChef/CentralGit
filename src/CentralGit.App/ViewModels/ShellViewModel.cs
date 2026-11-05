@@ -31,6 +31,9 @@ public enum AppPage
     History,
     Changes,
     Health,
+    Recovery,
+    FileHistory,
+    Compare,
 }
 
 public sealed partial class ShellViewModel : ObservableObject
@@ -108,8 +111,15 @@ public sealed partial class ShellViewModel : ObservableObject
             OnPropertyChanged(nameof(ShowHistory));
             OnPropertyChanged(nameof(ShowChanges));
             OnPropertyChanged(nameof(ShowHealth));
+            OnPropertyChanged(nameof(ShowRecovery));
+            OnPropertyChanged(nameof(ShowFileHistory));
+            OnPropertyChanged(nameof(ShowCompare));
             if (value == AppPage.Changes)
                 _ = Changes.RefreshAsync();
+            else if (value == AppPage.Compare)
+                _ = LoadCompareAsync();
+            else if (value == AppPage.Recovery)
+                _ = LoadRecoveryAsync();
             else if (value == AppPage.Health)
                 _ = LoadHealthAsync();
         }
@@ -124,6 +134,9 @@ public sealed partial class ShellViewModel : ObservableObject
 
     public bool ShowHistory => _page == AppPage.History;
     public bool ShowHealth => _page == AppPage.Health;
+    public bool ShowRecovery => _page == AppPage.Recovery;
+    public bool ShowFileHistory => _page == AppPage.FileHistory;
+    public bool ShowCompare => _page == AppPage.Compare;
 
     public string? RepositoryPath => _session?.Path;
 
@@ -345,6 +358,8 @@ public sealed partial class ShellViewModel : ObservableObject
         _session = _repositories.Open(path);
         Inspector.Attach(_session.History);
         Changes.Attach(_session.Changes);
+        FileHistory.Attach(_session.History);
+        Compare.Attach(_session.Compare);
         Inspector.IsSplit = _layouts.Get(path).SplitDiff;
         RepositoryName = _session.Name;
         OnPropertyChanged(nameof(RepositoryPath));
@@ -356,6 +371,9 @@ public sealed partial class ShellViewModel : ObservableObject
 
         await ReloadAsync();
         RepositoryOpened?.Invoke();
+        // Recovery is cheap (one reflog read): load it now so the sidebar can show lost commits.
+        Recovery.Clear();
+        _ = LoadRecoveryAsync();
         if (Page == AppPage.Health)
             _ = LoadHealthAsync();
     }
@@ -748,8 +766,10 @@ public sealed partial class ShellViewModel : ObservableObject
 
     private async Task FinishAsync(OperationOutcome result, OperationViewModel op, Func<string> success)
     {
-        // Pull and push change refs (and a failed pull may have changed some): always refresh.
+        // Operations change refs (and a failed pull may have changed some): always refresh, including
+        // Recovery, since deleting or resetting a branch can leave commits only the reflog knows.
         await ReloadAsync();
+        _ = LoadRecoveryAsync();
         if (op.State == OperationState.Succeeded)
             SetStatus(success(), error: false);
         else if (op.State == OperationState.Failed && !op.IsBackground)

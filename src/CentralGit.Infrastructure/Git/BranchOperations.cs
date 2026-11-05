@@ -13,6 +13,9 @@ public static class BranchOperations
     public static IReadOnlyList<string> Create(string name, string? startPoint = null) =>
         startPoint is null ? ["switch", "--progress", "-c", name] : ["switch", "--progress", "-c", name, startPoint];
 
+    /// <summary>A branch at <paramref name="commit"/>, staying where we are (bringing back lost commits).</summary>
+    public static IReadOnlyList<string> CreateAt(string name, string commit) => ["branch", name, commit];
+
     public static IReadOnlyList<string> Rename(string from, string to) => ["branch", "-m", from, to];
 
     /// <summary><c>-d</c> refuses to delete unmerged work; <c>-D</c> (force) doesn't. Force only after asking.</summary>

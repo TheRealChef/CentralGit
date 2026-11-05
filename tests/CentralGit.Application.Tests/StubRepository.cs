@@ -6,6 +6,7 @@ using CentralGit.Domain.Changes;
 using CentralGit.Domain.Commits;
 using CentralGit.Domain.Diff;
 using CentralGit.Domain.Health;
+using CentralGit.Domain.Recovery;
 
 namespace CentralGit.Application.Tests;
 
@@ -95,6 +96,25 @@ internal sealed class StubRepository(string path) : IGitRepository
 
     public Task<RepositoryFacts> ReadFactsAsync(DateTimeOffset now, CancellationToken ct = default) =>
         No<RepositoryFacts>();
+
+    public Task<IReadOnlyList<ReflogEntry>> ReadReflogAsync(int limit, CancellationToken ct = default) =>
+        No<IReadOnlyList<ReflogEntry>>();
+
+    public Task<IReadOnlySet<string>> FindUnreachableAsync(
+        IEnumerable<string> hashes,
+        CancellationToken ct = default
+    ) => No<IReadOnlySet<string>>();
+
+    public Task<IReadOnlyList<FileRevision>> GetFileHistoryAsync(
+        string file,
+        int limit,
+        CancellationToken ct = default
+    ) => No<IReadOnlyList<FileRevision>>();
+
+    public Task<IReadOnlyList<string>> ListFilesAsync(CancellationToken ct = default) => No<IReadOnlyList<string>>();
+
+    public Task<Comparison> CompareAsync(string baseRef, string headRef, int limit, CancellationToken ct = default) =>
+        No<Comparison>();
 
     public IPreparedOperation Prepare(GitOperation operation) => throw new NotSupportedException();
 }

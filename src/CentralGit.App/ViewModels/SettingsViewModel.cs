@@ -16,6 +16,7 @@ public enum SettingsSection
     Repositories,
     Accounts,
     Appearance,
+    About,
 }
 
 public sealed class ScanFolderViewModel(string path, int count, bool exists)
@@ -105,6 +106,7 @@ public sealed partial class SettingsViewModel(
             OnPropertyChanged(nameof(IsRepositories));
             OnPropertyChanged(nameof(IsAccounts));
             OnPropertyChanged(nameof(IsAppearance));
+            OnPropertyChanged(nameof(IsAbout));
             if (value == SettingsSection.Accounts)
                 _ = LoadAccountsAsync();
         }
@@ -113,6 +115,7 @@ public sealed partial class SettingsViewModel(
     public bool IsRepositories => _section == SettingsSection.Repositories;
     public bool IsAccounts => _section == SettingsSection.Accounts;
     public bool IsAppearance => _section == SettingsSection.Appearance;
+    public bool IsAbout => _section == SettingsSection.About;
 
     public string BackText =>
         shell.RepositoryName is { Length: > 0 } n && shell.RepositoryPath is not null ? $"Back to {n}" : "Back";

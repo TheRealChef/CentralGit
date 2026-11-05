@@ -63,3 +63,22 @@ public interface IGitAccounts
 
     Task SignOutAsync(StoredCredential credential, CancellationToken ct = default);
 }
+
+/// <summary>A newer version published on the release feed.</summary>
+public sealed record AvailableUpdate(string Version, string? Notes);
+
+/// <summary>The app's own updates (Velopack, from the GitHub releases).</summary>
+public interface IAppUpdater
+{
+    /// <summary>False when running from a build folder: only installed copies can update.</summary>
+    bool IsInstalled { get; }
+
+    string CurrentVersion { get; }
+
+    Task<AvailableUpdate?> CheckAsync(CancellationToken ct = default);
+
+    Task DownloadAsync(AvailableUpdate update, Action<int> percent, CancellationToken ct = default);
+
+    /// <summary>Closes the app, installs the downloaded update and starts the new version.</summary>
+    void RestartInto(AvailableUpdate update);
+}

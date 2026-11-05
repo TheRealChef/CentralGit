@@ -34,6 +34,7 @@ public sealed partial class MainWindow : Window
     public ShellViewModel ViewModel { get; }
     public SwitcherViewModel Switcher { get; }
     public SettingsViewModel Settings { get; }
+    public UpdatesViewModel Updates { get; }
 
     public MainWindow(
         StartupOptions startup,
@@ -41,6 +42,7 @@ public sealed partial class MainWindow : Window
         SwitcherViewModel switcher,
         SettingsViewModel settingsPage,
         BranchPickerViewModel branchPicker,
+        UpdatesViewModel updates,
         ISettingsStore settings,
         ILayoutStore layouts
     )
@@ -53,6 +55,7 @@ public sealed partial class MainWindow : Window
         Switcher = switcher;
         Settings = settingsPage;
         BranchPicker = branchPicker;
+        Updates = updates;
         InitializeComponent();
 
         // Ctrl+P (switcher) and Ctrl+, (settings). Comma has no named VirtualKey, so these are added here.
@@ -87,6 +90,8 @@ public sealed partial class MainWindow : Window
         InitializeChanges();
         InitializeBranches();
         InitializeHealth();
+        InitializeRecovery();
+        InitializeCompare();
         InitializePanes();
 
         ExtendsContentIntoTitleBar = true;
@@ -148,6 +153,8 @@ public sealed partial class MainWindow : Window
         };
 
         AppTitleBar.SizeChanged += (_, _) => UpdateTitleBarRegions();
+        BranchButton.SizeChanged += (_, _) => UpdateTitleBarRegions();
+        ChangesBadge.SizeChanged += (_, _) => UpdateTitleBarRegions();
         Activated += OnActivated;
         HistoryList.Loaded += (_, _) => HookHistoryScrolling();
         UpdateDiffToggle();
@@ -223,6 +230,7 @@ public sealed partial class MainWindow : Window
             return;
         _initialized = true;
         UpdateTitleBarRegions();
+        Updates.Start();
         await ViewModel.InitializeAsync(_requestedPath);
 
         if (ViewModel.RepositoryPath is { } path)
@@ -463,7 +471,7 @@ public sealed partial class MainWindow : Window
         var scale = root.RasterizationScale;
         CaptionColumn.Width = new GridLength(AppWindow.TitleBar.RightInset / scale);
 
-        var interactive = new FrameworkElement[] { RepoButton, BranchButton, CommandBox, SyncPanel };
+        var interactive = new FrameworkElement[] { RepoButton, BranchButton, ChangesBadge, CommandBox, SyncPanel };
         var rects = interactive
             .Where(e => e.ActualWidth > 0)
             .Select(e =>

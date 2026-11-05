@@ -6,6 +6,7 @@ using CentralGit.Domain.Changes;
 using CentralGit.Domain.Commits;
 using CentralGit.Domain.Diff;
 using CentralGit.Domain.Health;
+using CentralGit.Domain.Recovery;
 using CentralGit.Infrastructure.FileSystem;
 
 namespace CentralGit.Infrastructure.Git;
@@ -87,6 +88,18 @@ public sealed class GitRepository(string path, GitRunner? git = null) : IGitRepo
         ChangedFile file,
         CancellationToken ct = default
     ) => DiffParser.LoadAsync(_git, Path, baseRevision, revision, file, ct);
+
+    public Task<IReadOnlyList<FileRevision>> GetFileHistoryAsync(
+        string file,
+        int limit,
+        CancellationToken ct = default
+    ) => FileHistoryReader.ReadAsync(_git, Path, file, limit, ct);
+
+    public Task<IReadOnlyList<string>> ListFilesAsync(CancellationToken ct = default) =>
+        FileHistoryReader.ListFilesAsync(_git, Path, ct);
+
+    public Task<Comparison> CompareAsync(string baseRef, string headRef, int limit, CancellationToken ct = default) =>
+        CompareReader.CompareAsync(_git, Path, baseRef, headRef, limit, ct);
 
     // ─── Branches & configuration ─────────────────────────────────────────
 
@@ -261,6 +274,16 @@ public sealed class GitRepository(string path, GitRunner? git = null) : IGitRepo
 
     public Task<RepositoryFacts> ReadFactsAsync(DateTimeOffset now, CancellationToken ct = default) =>
         HealthReader.ReadFactsAsync(_git, Path, now, ct);
+
+    // ─── Recovery ─────────────────────────────────────────────────────────
+
+    public Task<IReadOnlyList<ReflogEntry>> ReadReflogAsync(int limit, CancellationToken ct = default) =>
+        ReflogReader.ReadAsync(_git, Path, limit, ct);
+
+    public Task<IReadOnlySet<string>> FindUnreachableAsync(
+        IEnumerable<string> hashes,
+        CancellationToken ct = default
+    ) => ReflogReader.FindUnreachableAsync(_git, Path, hashes, ct);
 
     // ─── Operations ───────────────────────────────────────────────────────
 

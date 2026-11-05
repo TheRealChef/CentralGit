@@ -5,6 +5,7 @@ using CentralGit.Domain.Changes;
 using CentralGit.Domain.Commits;
 using CentralGit.Domain.Diff;
 using CentralGit.Domain.Health;
+using CentralGit.Domain.Recovery;
 
 namespace CentralGit.Application.Ports;
 
@@ -33,6 +34,15 @@ public interface IHistorySource
         ChangedFile file,
         CancellationToken ct = default
     );
+
+    /// <summary>Commits that changed <paramref name="file"/> (HEAD's history, following renames), newest first.</summary>
+    Task<IReadOnlyList<FileRevision>> GetFileHistoryAsync(string file, int limit, CancellationToken ct = default);
+
+    /// <summary>Every tracked file, repository-relative with forward slashes.</summary>
+    Task<IReadOnlyList<string>> ListFilesAsync(CancellationToken ct = default);
+
+    /// <summary>Commits on each side of <paramref name="baseRef"/>...<paramref name="headRef"/> (at most <paramref name="limit"/> each) and the files head changes since their merge base.</summary>
+    Task<Comparison> CompareAsync(string baseRef, string headRef, int limit, CancellationToken ct = default);
 }
 
 /// <summary>Branches, remotes and the configuration that decides how to sync.</summary>
@@ -99,6 +109,16 @@ public interface IHealthSource
     Task<RepositoryFacts> ReadFactsAsync(DateTimeOffset now, CancellationToken ct = default);
 }
 
+/// <summary>The reflog: everything HEAD pointed at, for bringing back lost work.</summary>
+public interface IRecoverySource
+{
+    /// <summary>Newest first; empty for a repository without commits.</summary>
+    Task<IReadOnlyList<ReflogEntry>> ReadReflogAsync(int limit, CancellationToken ct = default);
+
+    /// <summary>Of <paramref name="hashes"/>, the commits that no branch, tag, remote branch or stash contains.</summary>
+    Task<IReadOnlySet<string>> FindUnreachableAsync(IEnumerable<string> hashes, CancellationToken ct = default);
+}
+
 /// <summary>Turns an intent into something the Operations Center can run.</summary>
 public interface IOperationSource
 {
@@ -106,7 +126,13 @@ public interface IOperationSource
 }
 
 /// <summary>One repository on disk, reached however Infrastructure reaches it (the git CLI).</summary>
-public interface IGitRepository : IHistorySource, IBranchSource, IWorkingTreeSource, IHealthSource, IOperationSource
+public interface IGitRepository
+    : IHistorySource,
+        IBranchSource,
+        IWorkingTreeSource,
+        IHealthSource,
+        IRecoverySource,
+        IOperationSource
 {
     string Path { get; }
     string Name { get; }

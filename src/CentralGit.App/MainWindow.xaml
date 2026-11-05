@@ -184,6 +184,44 @@
                     </DataTemplate>
                 </diff:DiffTemplateSelector.GapTemplate>
             </diff:DiffTemplateSelector>
+            <!--  Compare: one commit on either side; click to see it in History.  -->
+            <DataTemplate x:Key="CompareCommitTemplate" x:DataType="vm:CompareCommitRowViewModel">
+                <Button Style="{StaticResource GhostButtonStyle}"
+                        Height="Auto"
+                        Padding="8,6"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Click="OnCompareCommitClick"
+                        Tag="{x:Bind Commit.Hash}"
+                        ToolTipService.ToolTip="Show in History">
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Rectangle RadiusX="1.5" RadiusY="1.5">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{x:Bind MarkerColor}" />
+                            </Rectangle.Fill>
+                        </Rectangle>
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock Text="{x:Bind Subject}"
+                                       FontSize="12.5"
+                                       Foreground="{ThemeResource TextPrimaryBrush}"
+                                       TextTrimming="CharacterEllipsis" />
+                            <TextBlock FontSize="11.5"
+                                       Foreground="{ThemeResource TextMutedBrush}"
+                                       TextTrimming="CharacterEllipsis">
+                                <Run Text="{x:Bind ShortHash}" FontFamily="{StaticResource MonoFont}" />
+                                <Run Text="  " />
+                                <Run Text="{x:Bind Author}" />
+                                <Run Text="  ·  " />
+                                <Run Text="{x:Bind WhenText}" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </Button>
+            </DataTemplate>
 
             <DataTemplate x:Key="WorkingFileTemplate" x:DataType="vm:WorkingFileViewModel">
                 <Grid Padding="10,0,4,0"
@@ -473,20 +511,27 @@
                                    MaxWidth="220"
                                    TextTrimming="CharacterEllipsis"
                                    ToolTipService.ToolTip="{x:Bind ViewModel.BranchName, Mode=OneWay}" />
-                        <Border Visibility="{x:Bind ViewModel.HasChanges, Mode=OneWay}"
-                                Background="{ThemeResource OrangeTintBrush}"
-                                CornerRadius="4"
-                                Padding="6,1">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                <Ellipse Width="6"
-                                         Height="6"
-                                         Fill="{ThemeResource OrangeBrush}"
-                                         VerticalAlignment="Center" />
-                                <TextBlock Text="{x:Bind ViewModel.ChangedFilesText, Mode=OneWay}"
-                                           FontSize="11.5"
-                                           Foreground="{ThemeResource OrangeTextBrush}" />
-                            </StackPanel>
-                        </Border>
+                    </StackPanel>
+                </Button>
+                <!--  Its own button so a click opens Changes instead of the branch picker.  -->
+                <Button x:Name="ChangesBadge"
+                        Style="{StaticResource GhostButtonStyle}"
+                        Background="{ThemeResource OrangeTintBrush}"
+                        Visibility="{x:Bind ViewModel.HasChanges, Mode=OneWay}"
+                        Height="22"
+                        Padding="6,0"
+                        CornerRadius="4"
+                        Click="OnShowChanges"
+                        ToolTipService.ToolTip="Open Changes (Ctrl+2)"
+                        AutomationProperties.Name="Open Changes">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <Ellipse Width="6"
+                                 Height="6"
+                                 Fill="{ThemeResource OrangeBrush}"
+                                 VerticalAlignment="Center" />
+                        <TextBlock Text="{x:Bind ViewModel.ChangedFilesText, Mode=OneWay}"
+                                   FontSize="11.5"
+                                   Foreground="{ThemeResource OrangeTextBrush}" />
                     </StackPanel>
                 </Button>
             </StackPanel>
@@ -631,23 +676,48 @@
                                        ToolTipService.ToolTip="Local branches that could be cleaned up" />
                         </Grid>
                     </Button>
-                    <Button Style="{StaticResource NavButtonStyle}">
+                    <Button x:Name="NavCompare"
+                            Style="{StaticResource NavButtonStyle}"
+                            Click="OnShowCompare"
+                            AutomationProperties.Name="Compare"
+                            ToolTipService.ToolTip="Two branches side by side: commits and changed files (Ctrl+4)">
                         <StackPanel Orientation="Horizontal" Spacing="10">
-                            <FontIcon Glyph="&#xE8AB;" FontSize="15" />
-                            <TextBlock Text="Compare" />
+                            <FontIcon x:Name="NavCompareIcon"
+                                      Glyph="&#xE8AB;"
+                                      FontSize="15" />
+                            <TextBlock x:Name="NavCompareText" Text="Compare" />
                         </StackPanel>
                     </Button>
-                    <Button Style="{StaticResource NavButtonStyle}">
+                    <Button x:Name="NavFileHistory"
+                            Style="{StaticResource NavButtonStyle}"
+                            Click="OnShowFileHistory"
+                            AutomationProperties.Name="File History"
+                            ToolTipService.ToolTip="Every commit that changed a file, across renames (Ctrl+5)">
                         <StackPanel Orientation="Horizontal" Spacing="10">
-                            <FontIcon Glyph="&#xE7C3;" FontSize="15" />
-                            <TextBlock Text="File History" />
+                            <FontIcon x:Name="NavFileHistoryIcon"
+                                      Glyph="&#xE7C3;"
+                                      FontSize="15" />
+                            <TextBlock x:Name="NavFileHistoryText" Text="File History" />
                         </StackPanel>
                     </Button>
-                    <Button Style="{StaticResource NavButtonStyle}">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <FontIcon Glyph="&#xE7A7;" FontSize="15" />
-                            <TextBlock Text="Recovery" />
-                        </StackPanel>
+                    <Button x:Name="NavRecovery"
+                            Style="{StaticResource NavButtonStyle}"
+                            Click="OnShowRecovery"
+                            AutomationProperties.Name="Recovery"
+                            ToolTipService.ToolTip="Find and restore lost commits from the reflog (Ctrl+6)">
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon x:Name="NavRecoveryIcon"
+                                          Glyph="&#xE7A7;"
+                                          FontSize="15" />
+                                <TextBlock x:Name="NavRecoveryText" Text="Recovery" />
+                            </StackPanel>
+                            <TextBlock HorizontalAlignment="Right"
+                                       Text="{x:Bind ViewModel.RecoverySidebarText, Mode=OneWay}"
+                                       FontSize="11.5"
+                                       Foreground="{ThemeResource OrangeTextBrush}"
+                                       ToolTipService.ToolTip="Commits that are no longer on any branch" />
+                        </Grid>
                     </Button>
                 </StackPanel>
 
@@ -723,6 +793,13 @@
                                                             Tag="{x:Bind FullName}">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xE81C;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutItem Text="Compare"
+                                                            Click="OnBranchCompare"
+                                                            Tag="{x:Bind FullName}">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xE8AB;" />
                                                 </MenuFlyoutItem.Icon>
                                             </MenuFlyoutItem>
                                             <MenuFlyoutItem Text="Switch to this branch"
@@ -1278,6 +1355,17 @@
                                     <Grid Padding="10,0"
                                           ColumnSpacing="8"
                                           ToolTipService.ToolTip="{x:Bind Model.Path}">
+                                        <Grid.ContextFlyout>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Text="File history"
+                                                                Click="OnFileHistoryFromInspector"
+                                                                Tag="{x:Bind Model.Path}">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE81C;" />
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                            </MenuFlyout>
+                                        </Grid.ContextFlyout>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="14" />
                                             <ColumnDefinition Width="*" />
@@ -2162,6 +2250,601 @@
                 </Grid>
             </ScrollViewer>
 
+            <!--  ═══ Recovery (reflog) ═══  -->
+            <ScrollViewer x:Name="RecoveryPage"
+                          Grid.Column="1"
+                          Background="{ThemeResource WindowBrush}"
+                          Visibility="{x:Bind ViewModel.ShowRecovery, Mode=OneWay}"
+                          HorizontalScrollMode="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+                <Grid Padding="28,22,28,28"
+                      RowSpacing="16"
+                      MaxWidth="1280"
+                      HorizontalAlignment="Stretch">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!--  Header  -->
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Recovery"
+                                       FontSize="20"
+                                       FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextPrimaryBrush}" />
+                            <TextBlock Text="Everything HEAD has pointed at (the reflog). Commits that a reset, rebase, amend or deleted branch left behind can be brought back as a branch."
+                                       FontSize="12.5"
+                                       Foreground="{ThemeResource TextMutedBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,3,0,0" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1"
+                                    Orientation="Horizontal"
+                                    Spacing="8"
+                                    VerticalAlignment="Center">
+                            <ProgressRing IsActive="{x:Bind ViewModel.Recovery.IsLoading, Mode=OneWay}"
+                                          Width="16"
+                                          Height="16" />
+                            <TextBlock Text="{x:Bind ViewModel.Recovery.LoadedText, Mode=OneWay}"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextMutedBrush}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                        <Button Grid.Column="2"
+                                Style="{StaticResource GhostButtonStyle}"
+                                Click="OnRecoveryRefresh"
+                                AutomationProperties.Name="Refresh recovery"
+                                ToolTipService.ToolTip="Read the reflog again (F5)">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <FontIcon Glyph="&#xE72C;" FontSize="13" />
+                                <TextBlock Text="Refresh" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <TextBlock Grid.Row="1"
+                               Text="{x:Bind ViewModel.Recovery.ErrorText, Mode=OneWay}"
+                               Visibility="{x:Bind ViewModel.Recovery.HasError, Mode=OneWay}"
+                               Foreground="{ThemeResource RedTextBrush}"
+                               TextWrapping="Wrap"
+                               IsTextSelectionEnabled="True" />
+
+                    <Border Grid.Row="2" Style="{StaticResource CardStyle}">
+                        <StackPanel Spacing="12">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <Button x:Name="RecoveryLostTab"
+                                        Style="{StaticResource GhostButtonStyle}"
+                                        Click="OnRecoveryShowLost"
+                                        Content="{x:Bind ViewModel.Recovery.LostTabText, Mode=OneWay}"
+                                        ToolTipService.ToolTip="Commits no branch, tag or stash holds any more" />
+                                <Button x:Name="RecoveryAllTab"
+                                        Style="{StaticResource GhostButtonStyle}"
+                                        Click="OnRecoveryShowAll"
+                                        Content="{x:Bind ViewModel.Recovery.AllTabText, Mode=OneWay}"
+                                        ToolTipService.ToolTip="Every commit HEAD has pointed at, newest first" />
+                            </StackPanel>
+
+                            <ItemsRepeater ItemsSource="{x:Bind ViewModel.Recovery.Rows}">
+                                <ItemsRepeater.Layout>
+                                    <StackLayout Spacing="2" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:RecoveryRowViewModel">
+                                        <Grid Padding="8,8"
+                                              ColumnSpacing="12"
+                                              CornerRadius="6"
+                                              Background="{ThemeResource WindowBrush}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <FontIcon Glyph="{x:Bind Glyph}"
+                                                      FontSize="14"
+                                                      VerticalAlignment="Center">
+                                                <FontIcon.Foreground>
+                                                    <SolidColorBrush Color="{x:Bind GlyphColor}" />
+                                                </FontIcon.Foreground>
+                                            </FontIcon>
+                                            <StackPanel Grid.Column="1"
+                                                        Spacing="2"
+                                                        VerticalAlignment="Center">
+                                                <TextBlock Text="{x:Bind Description}"
+                                                           FontSize="13"
+                                                           Foreground="{ThemeResource TextPrimaryBrush}"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           ToolTipService.ToolTip="{x:Bind Description}" />
+                                                <TextBlock FontSize="11.5"
+                                                           Foreground="{ThemeResource TextMutedBrush}"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           IsTextSelectionEnabled="True">
+                                                    <Run Text="{x:Bind ShortHash}" FontFamily="{StaticResource MonoFont}" />
+                                                    <Run Text="{x:Bind Detail}" />
+                                                </TextBlock>
+                                            </StackPanel>
+                                            <Border Grid.Column="2"
+                                                    CornerRadius="9"
+                                                    Padding="8,2"
+                                                    VerticalAlignment="Center"
+                                                    Visibility="{x:Bind IsLost}">
+                                                <Border.Background>
+                                                    <SolidColorBrush Color="{x:Bind BadgeBackground}" />
+                                                </Border.Background>
+                                                <TextBlock Text="not on a branch" FontSize="11.5">
+                                                    <TextBlock.Foreground>
+                                                        <SolidColorBrush Color="{x:Bind BadgeColor}" />
+                                                    </TextBlock.Foreground>
+                                                </TextBlock>
+                                            </Border>
+                                            <TextBlock Grid.Column="3"
+                                                       Width="90"
+                                                       Text="{x:Bind WhenText}"
+                                                       FontSize="11.5"
+                                                       Foreground="{ThemeResource TextSecondaryBrush}"
+                                                       TextAlignment="Right"
+                                                       VerticalAlignment="Center"
+                                                       ToolTipService.ToolTip="{x:Bind WhenTooltip}" />
+                                            <StackPanel Grid.Column="4"
+                                                        Width="150"
+                                                        VerticalAlignment="Center">
+                                                <Button Style="{StaticResource GhostButtonStyle}"
+                                                        Background="{ThemeResource RaisedBrush}"
+                                                        HorizontalAlignment="Right"
+                                                        Visibility="{x:Bind IsLost}"
+                                                        Click="OnRecoveryRestore"
+                                                        Content="Restore as branch"
+                                                        ToolTipService.ToolTip="Create a branch at this commit, staying where you are" />
+                                                <Button Style="{StaticResource GhostButtonStyle}"
+                                                        HorizontalAlignment="Right"
+                                                        Visibility="{x:Bind IsOnBranch}"
+                                                        Click="OnRecoveryShowInHistory"
+                                                        Content="Show in History" />
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                            <TextBlock Text="{x:Bind ViewModel.Recovery.EmptyText, Mode=OneWay}"
+                                       Visibility="{x:Bind ViewModel.Recovery.IsEmpty, Mode=OneWay}"
+                                       FontSize="12.5"
+                                       Foreground="{ThemeResource TextMutedBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,6,0,4" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </ScrollViewer>
+
+            <!--  ═══ File History ═══  -->
+            <Grid x:Name="FileHistoryPage"
+                  Grid.Column="1"
+                  Background="{ThemeResource WindowBrush}"
+                  Visibility="{x:Bind ViewModel.ShowFileHistory, Mode=OneWay}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="380" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!--  File picker and the commits that changed the file  -->
+                <Grid Background="{ThemeResource SurfaceBrush}"
+                      BorderBrush="{ThemeResource SeamBrush}"
+                      BorderThickness="0,0,1,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Padding="16,16,16,10" Spacing="10">
+                        <TextBlock Text="File history"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextPrimaryBrush}" />
+                        <AutoSuggestBox x:Name="FileHistoryPicker"
+                                        PlaceholderText="Find a file…"
+                                        QueryIcon="Find"
+                                        TextChanged="OnFileHistoryPickerTextChanged"
+                                        QuerySubmitted="OnFileHistoryPickerSubmitted"
+                                        AutomationProperties.Name="File to show the history of" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="1"
+                                Padding="16,0,16,10"
+                                Visibility="{x:Bind ViewModel.FileHistory.HasPath, Mode=OneWay}">
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{x:Bind ViewModel.FileHistory.FileName, Mode=OneWay}"
+                                       FontFamily="{StaticResource MonoFont}"
+                                       FontSize="13"
+                                       Foreground="{ThemeResource TextPrimaryBrush}"
+                                       TextTrimming="CharacterEllipsis"
+                                       IsTextSelectionEnabled="True" />
+                            <ProgressRing Grid.Column="1"
+                                          IsActive="{x:Bind ViewModel.FileHistory.IsLoading, Mode=OneWay}"
+                                          Width="14"
+                                          Height="14"
+                                          MinWidth="14"
+                                          MinHeight="14" />
+                        </Grid>
+                        <TextBlock FontSize="11.5"
+                                   Foreground="{ThemeResource TextMutedBrush}"
+                                   TextTrimming="CharacterEllipsis">
+                            <Run Text="{x:Bind ViewModel.FileHistory.Folder, Mode=OneWay}" />
+                            <Run Text="  " />
+                            <Run Text="{x:Bind ViewModel.FileHistory.CountText, Mode=OneWay}" />
+                        </TextBlock>
+                    </StackPanel>
+                    <TextBlock Grid.Row="2"
+                               Margin="16,4,16,0"
+                               Text="Pick a file to see every commit that changed it, following renames. In History, right-click a changed file for the same view."
+                               FontSize="12.5"
+                               Foreground="{ThemeResource TextMutedBrush}"
+                               TextWrapping="Wrap"
+                               Visibility="{x:Bind ViewModel.FileHistory.HasNoPath, Mode=OneWay}" />
+                    <TextBlock Grid.Row="2"
+                               Margin="16,4,16,0"
+                               Text="{x:Bind ViewModel.FileHistory.ErrorText, Mode=OneWay}"
+                               FontSize="12.5"
+                               Foreground="{ThemeResource OrangeTextBrush}"
+                               TextWrapping="Wrap"
+                               IsTextSelectionEnabled="True"
+                               Visibility="{x:Bind ViewModel.FileHistory.HasError, Mode=OneWay}" />
+                    <ListView x:Name="FileRevisionList"
+                              Grid.Row="2"
+                              Padding="0,0,0,8"
+                              ItemsSource="{x:Bind ViewModel.FileHistory.Revisions}"
+                              SelectedItem="{x:Bind ViewModel.FileHistory.Selected, Mode=TwoWay}"
+                              SelectionMode="Single"
+                              ItemContainerStyle="{StaticResource RevisionItemStyle}"
+                              AutomationProperties.Name="Commits that changed the file">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="vm:FileRevisionRowViewModel">
+                                <StackPanel Padding="10,7" Spacing="2">
+                                    <TextBlock Text="{x:Bind Subject}"
+                                               FontSize="12.5"
+                                               Foreground="{ThemeResource TextPrimaryBrush}"
+                                               TextTrimming="CharacterEllipsis"
+                                               ToolTipService.ToolTip="{x:Bind Subject}" />
+                                    <TextBlock FontSize="11.5"
+                                               Foreground="{ThemeResource TextMutedBrush}"
+                                               TextTrimming="CharacterEllipsis">
+                                        <Run Text="{x:Bind ShortHash}" FontFamily="{StaticResource MonoFont}" />
+                                        <Run Text="  " />
+                                        <Run Text="{x:Bind Author}" />
+                                        <Run Text="  ·  " />
+                                        <Run Text="{x:Bind WhenText}" />
+                                    </TextBlock>
+                                    <TextBlock Text="{x:Bind KindText}"
+                                               FontSize="11.5"
+                                               TextTrimming="CharacterEllipsis"
+                                               Visibility="{x:Bind HasKind}">
+                                        <TextBlock.Foreground>
+                                            <SolidColorBrush Color="{x:Bind KindColor}" />
+                                        </TextBlock.Foreground>
+                                    </TextBlock>
+                                    <TextBlock Text="{x:Bind PathText}"
+                                               FontSize="11.5"
+                                               FontFamily="{StaticResource MonoFont}"
+                                               Foreground="{ThemeResource TextMutedBrush}"
+                                               TextTrimming="CharacterEllipsis"
+                                               Visibility="{x:Bind HasPathText}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+
+                <!--  The selected commit's change to the file  -->
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid Height="44"
+                          Padding="16,0,10,0"
+                          ColumnSpacing="10"
+                          BorderBrush="{ThemeResource SeamBrush}"
+                          BorderThickness="0,0,0,1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{x:Bind ViewModel.FileHistory.SelectedTitle, Mode=OneWay}"
+                                   FontSize="12.5"
+                                   Foreground="{ThemeResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"
+                                   IsTextSelectionEnabled="True" />
+                        <Button Grid.Column="1"
+                                Style="{StaticResource GhostButtonStyle}"
+                                Click="OnFileHistoryShowCommit"
+                                Visibility="{x:Bind ViewModel.FileHistory.HasPath, Mode=OneWay}"
+                                ToolTipService.ToolTip="Select this commit in History">
+                            <StackPanel Orientation="Horizontal" Spacing="7">
+                                <FontIcon Glyph="&#xE8A7;" FontSize="12" />
+                                <TextBlock Text="Show in History" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                    <ListView x:Name="FileHistoryDiffList"
+                              Grid.Row="1"
+                              ItemsSource="{x:Bind ViewModel.FileHistory.DiffRows, Mode=OneWay}"
+                              ItemTemplateSelector="{StaticResource DiffRowSelector}"
+                              ItemContainerStyle="{StaticResource DiffItemStyle}"
+                              SelectionMode="None"
+                              IsItemClickEnabled="False"
+                              AutomationProperties.Name="Change to the file" />
+                    <TextBlock Grid.Row="1"
+                               Text="{x:Bind ViewModel.FileHistory.DiffMessage, Mode=OneWay}"
+                               Foreground="{ThemeResource TextMutedBrush}"
+                               TextWrapping="Wrap"
+                               MaxWidth="420"
+                               TextAlignment="Center"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Visibility="{x:Bind ViewModel.FileHistory.HasDiffMessage, Mode=OneWay}" />
+                </Grid>
+            </Grid>
+
+            <!--  ═══ Compare ═══  -->
+            <Grid x:Name="ComparePage"
+                  Grid.Column="1"
+                  Background="{ThemeResource WindowBrush}"
+                  Visibility="{x:Bind ViewModel.ShowCompare, Mode=OneWay}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="400" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!--  The two refs, the summary, and files / commits  -->
+                <Grid Background="{ThemeResource SurfaceBrush}"
+                      BorderBrush="{ThemeResource SeamBrush}"
+                      BorderThickness="0,0,1,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Padding="16,16,16,8" Spacing="10">
+                        <Grid ColumnSpacing="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Compare"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextPrimaryBrush}"
+                                       VerticalAlignment="Center" />
+                            <ProgressRing Grid.Column="1"
+                                          IsActive="{x:Bind ViewModel.Compare.IsLoading, Mode=OneWay}"
+                                          Width="14"
+                                          Height="14"
+                                          MinWidth="14"
+                                          MinHeight="14" />
+                        </Grid>
+                        <Grid ColumnSpacing="8" RowSpacing="6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="Base"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextMutedBrush}"
+                                       VerticalAlignment="Center" />
+                            <ComboBox Grid.Column="1"
+                                      HorizontalAlignment="Stretch"
+                                      ItemsSource="{x:Bind ViewModel.Compare.Refs, Mode=OneWay}"
+                                      SelectedItem="{x:Bind ViewModel.Compare.Base, Mode=TwoWay}"
+                                      AutomationProperties.Name="Base: what the branch is compared against" />
+                            <TextBlock Grid.Row="1"
+                                       Text="Compare"
+                                       FontSize="12"
+                                       Foreground="{ThemeResource TextMutedBrush}"
+                                       VerticalAlignment="Center" />
+                            <ComboBox Grid.Row="1"
+                                      Grid.Column="1"
+                                      HorizontalAlignment="Stretch"
+                                      ItemsSource="{x:Bind ViewModel.Compare.Refs, Mode=OneWay}"
+                                      SelectedItem="{x:Bind ViewModel.Compare.Head, Mode=TwoWay}"
+                                      AutomationProperties.Name="Compare: the branch to look at" />
+                            <Button Grid.RowSpan="2"
+                                    Grid.Column="2"
+                                    Style="{StaticResource GhostButtonStyle}"
+                                    Padding="8,0"
+                                    VerticalAlignment="Center"
+                                    Click="OnCompareSwap"
+                                    AutomationProperties.Name="Swap base and compare"
+                                    ToolTipService.ToolTip="Swap">
+                                <FontIcon Glyph="&#xE8CB;" FontSize="13" />
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1"
+                                Padding="16,0,16,10"
+                                Spacing="3">
+                        <TextBlock Text="{x:Bind ViewModel.Compare.SummaryText, Mode=OneWay}"
+                                   FontSize="12.5"
+                                   Foreground="{ThemeResource TextPrimaryBrush}"
+                                   TextWrapping="Wrap" />
+                        <TextBlock Text="{x:Bind ViewModel.Compare.TotalsText, Mode=OneWay}"
+                                   FontSize="11.5"
+                                   Foreground="{ThemeResource TextMutedBrush}" />
+                        <TextBlock Text="{x:Bind ViewModel.Compare.ErrorText, Mode=OneWay}"
+                                   Visibility="{x:Bind ViewModel.Compare.HasError, Mode=OneWay}"
+                                   FontSize="12.5"
+                                   Foreground="{ThemeResource OrangeTextBrush}"
+                                   TextWrapping="Wrap"
+                                   IsTextSelectionEnabled="True" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2"
+                                Padding="10,0,10,6"
+                                Orientation="Horizontal"
+                                Spacing="6"
+                                Visibility="{x:Bind ViewModel.Compare.HasComparison, Mode=OneWay}">
+                        <Button x:Name="CompareFilesTab"
+                                Style="{StaticResource GhostButtonStyle}"
+                                Click="OnCompareShowFiles"
+                                Content="{x:Bind ViewModel.Compare.FilesTabText, Mode=OneWay}" />
+                        <Button x:Name="CompareCommitsTab"
+                                Style="{StaticResource GhostButtonStyle}"
+                                Click="OnCompareShowCommits"
+                                Content="{x:Bind ViewModel.Compare.CommitsTabText, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <!--  Files  -->
+                    <ListView x:Name="CompareFileList"
+                              Grid.Row="3"
+                              Padding="0,0,0,8"
+                              ItemsSource="{x:Bind ViewModel.Compare.Files}"
+                              SelectedItem="{x:Bind ViewModel.Compare.SelectedFile, Mode=TwoWay}"
+                              SelectionMode="Single"
+                              ItemContainerStyle="{StaticResource FileItemStyle}"
+                              Visibility="{x:Bind ViewModel.Compare.ShowFiles, Mode=OneWay}"
+                              AutomationProperties.Name="Files the compared branch changes">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ChangedFileViewModel">
+                                <Grid Padding="10,0"
+                                      ColumnSpacing="8"
+                                      ToolTipService.ToolTip="{x:Bind Model.Path}">
+                                    <Grid.ContextFlyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="File history"
+                                                            Click="OnFileHistoryFromInspector"
+                                                            Tag="{x:Bind Model.Path}">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xE81C;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                        </MenuFlyout>
+                                    </Grid.ContextFlyout>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="14" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{x:Bind Letter}"
+                                               FontFamily="{StaticResource MonoFont}"
+                                               FontSize="11.5"
+                                               FontWeight="SemiBold"
+                                               VerticalAlignment="Center">
+                                        <TextBlock.Foreground>
+                                            <SolidColorBrush Color="{x:Bind LetterColor}" />
+                                        </TextBlock.Foreground>
+                                    </TextBlock>
+                                    <TextBlock Grid.Column="1"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               FontSize="12.5">
+                                        <Run Text="{x:Bind FileName}" Foreground="{ThemeResource TextPrimaryBrush}" />
+                                        <Run Text="{x:Bind Directory}"
+                                             Foreground="{ThemeResource TextMutedBrush}"
+                                             FontSize="11.5" />
+                                    </TextBlock>
+                                    <TextBlock Grid.Column="2"
+                                               Text="{x:Bind AddedText}"
+                                               FontSize="11.5"
+                                               Foreground="{ThemeResource GreenTextBrush}"
+                                               VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="3"
+                                               Text="{x:Bind DeletedText}"
+                                               FontSize="11.5"
+                                               Foreground="{ThemeResource RedTextBrush}"
+                                               VerticalAlignment="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                    <TextBlock Grid.Row="3"
+                               Margin="16,4,16,0"
+                               Text="No file differences: the compared branch adds no changes to the base."
+                               FontSize="12.5"
+                               Foreground="{ThemeResource TextMutedBrush}"
+                               TextWrapping="Wrap"
+                               Visibility="{x:Bind ViewModel.Compare.HasNoFiles, Mode=OneWay}" />
+
+                    <!--  Commits on each side  -->
+                    <ScrollViewer Grid.Row="3"
+                                  Visibility="{x:Bind ViewModel.Compare.ShowCommits, Mode=OneWay}"
+                                  HorizontalScrollMode="Disabled"
+                                  VerticalScrollBarVisibility="Auto">
+                        <StackPanel Padding="10,0,10,12" Spacing="4">
+                            <TextBlock Text="{x:Bind ViewModel.Compare.AheadTitle, Mode=OneWay}"
+                                       Visibility="{x:Bind ViewModel.Compare.HasAhead, Mode=OneWay}"
+                                       Style="{StaticResource SectionLabelStyle}"
+                                       Margin="6,6,0,2" />
+                            <ItemsRepeater ItemsSource="{x:Bind ViewModel.Compare.Ahead}" ItemTemplate="{StaticResource CompareCommitTemplate}" />
+                            <TextBlock Text="{x:Bind ViewModel.Compare.BehindTitle, Mode=OneWay}"
+                                       Visibility="{x:Bind ViewModel.Compare.HasBehind, Mode=OneWay}"
+                                       Style="{StaticResource SectionLabelStyle}"
+                                       Margin="6,12,0,2" />
+                            <ItemsRepeater ItemsSource="{x:Bind ViewModel.Compare.Behind}" ItemTemplate="{StaticResource CompareCommitTemplate}" />
+                            <TextBlock Text="{x:Bind ViewModel.Compare.TruncatedText, Mode=OneWay}"
+                                       Visibility="{x:Bind ViewModel.Compare.IsTruncated, Mode=OneWay}"
+                                       FontSize="11.5"
+                                       Foreground="{ThemeResource TextMutedBrush}"
+                                       Margin="6,8,0,0" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+
+                <!--  The selected file's change  -->
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid Height="44"
+                          Padding="16,0,10,0"
+                          BorderBrush="{ThemeResource SeamBrush}"
+                          BorderThickness="0,0,0,1">
+                        <TextBlock Text="{x:Bind ViewModel.Compare.SelectedFile.Model.Path, Mode=OneWay, FallbackValue=''}"
+                                   FontFamily="{StaticResource MonoFont}"
+                                   FontSize="12.5"
+                                   Foreground="{ThemeResource TextSecondaryBrush}"
+                                   VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"
+                                   IsTextSelectionEnabled="True" />
+                    </Grid>
+                    <ListView x:Name="CompareDiffList"
+                              Grid.Row="1"
+                              ItemsSource="{x:Bind ViewModel.Compare.DiffRows, Mode=OneWay}"
+                              ItemTemplateSelector="{StaticResource DiffRowSelector}"
+                              ItemContainerStyle="{StaticResource DiffItemStyle}"
+                              SelectionMode="None"
+                              IsItemClickEnabled="False"
+                              AutomationProperties.Name="Change to the file" />
+                    <TextBlock Grid.Row="1"
+                               Text="{x:Bind ViewModel.Compare.DiffMessage, Mode=OneWay}"
+                               Foreground="{ThemeResource TextMutedBrush}"
+                               TextWrapping="Wrap"
+                               MaxWidth="420"
+                               TextAlignment="Center"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Visibility="{x:Bind ViewModel.Compare.HasDiffMessage, Mode=OneWay}" />
+                </Grid>
+            </Grid>
+
             <!--  Sidebar edge: drawn over the seam the sidebar already has  -->
             <controls:Splitter x:Name="SidebarSplitter"
                                Grid.Column="1"
@@ -2257,6 +2940,15 @@
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <FontIcon Glyph="&#xE790;" FontSize="15" />
                                 <TextBlock Text="Appearance" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="SettingsAboutNav"
+                                Style="{StaticResource NavButtonStyle}"
+                                Click="OnSettingsAbout"
+                                AutomationProperties.Name="About and updates">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <FontIcon Glyph="&#xE946;" FontSize="15" />
+                                <TextBlock Text="About" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
@@ -2723,6 +3415,51 @@
                                 </Border>
                             </StackPanel>
 
+                            <!--  About  -->
+                            <StackPanel Spacing="16" Visibility="{x:Bind Settings.IsAbout, Mode=OneWay}">
+                                <TextBlock Text="About"
+                                           FontSize="20"
+                                           FontWeight="SemiBold" />
+
+                                <Border Style="{StaticResource CardStyle}">
+                                    <Grid ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="{x:Bind Updates.VersionText, Mode=OneWay}" Style="{StaticResource CardTitleStyle}" />
+                                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <ProgressRing Visibility="{x:Bind Updates.IsWorking, Mode=OneWay}"
+                                                              IsActive="{x:Bind Updates.IsWorking, Mode=OneWay}"
+                                                              Width="12"
+                                                              Height="12"
+                                                              MinWidth="12"
+                                                              MinHeight="12"
+                                                              Foreground="{ThemeResource TealBrush}" />
+                                                <TextBlock Text="{x:Bind Updates.StatusText, Mode=OneWay}"
+                                                           Style="{StaticResource CardHintStyle}"
+                                                           TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1"
+                                                    Orientation="Horizontal"
+                                                    Spacing="6"
+                                                    VerticalAlignment="Top">
+                                            <Button Style="{StaticResource GhostButtonStyle}"
+                                                    Background="{ThemeResource RaisedBrush}"
+                                                    Visibility="{x:Bind Updates.CanCheck, Mode=OneWay}"
+                                                    Click="OnCheckForUpdates"
+                                                    Content="Check for updates" />
+                                            <Button Style="{StaticResource PrimaryButtonStyle}"
+                                                    Visibility="{x:Bind Updates.IsReady, Mode=OneWay}"
+                                                    Click="OnRestartToUpdate"
+                                                    Content="Restart now" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+
                             <!--  Accounts  -->
                             <StackPanel Spacing="16" Visibility="{x:Bind Settings.IsAccounts, Mode=OneWay}">
                                 <TextBlock Text="Accounts"
@@ -3130,11 +3867,37 @@
                     </Flyout>
                 </Button.Flyout>
             </Button>
-            <TextBlock Grid.Column="3"
-                       Text="CentralGit 0.1 · preview"
-                       FontSize="11.5"
-                       Foreground="{ThemeResource TextMutedBrush}"
-                       VerticalAlignment="Center" />
+            <StackPanel Grid.Column="3"
+                        Orientation="Horizontal"
+                        Spacing="10"
+                        VerticalAlignment="Center">
+                <!--  A downloaded update waits for a restart: violet = an action for you.  -->
+                <Button Style="{StaticResource GhostButtonStyle}"
+                        Visibility="{x:Bind Updates.IsReady, Mode=OneWay}"
+                        Height="22"
+                        Padding="8,0"
+                        Background="{ThemeResource VioletTintBrush}"
+                        Click="OnRestartToUpdate"
+                        ToolTipService.ToolTip="Install the downloaded update and restart CentralGit">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE777;"
+                                  FontSize="11"
+                                  Foreground="{ThemeResource VioletBrush}" />
+                        <TextBlock Text="{x:Bind Updates.RestartText, Mode=OneWay}"
+                                   FontSize="11.5"
+                                   Foreground="{ThemeResource TextPrimaryBrush}" />
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource GhostButtonStyle}"
+                        Height="22"
+                        Padding="6,0"
+                        Click="OnOpenAbout"
+                        ToolTipService.ToolTip="About and updates">
+                    <TextBlock Text="{x:Bind Updates.VersionText, Mode=OneWay}"
+                               FontSize="11.5"
+                               Foreground="{ThemeResource TextMutedBrush}" />
+                </Button>
+            </StackPanel>
         </Grid>
 
         <!--  ═══ Repository switcher (Ctrl+P) ═══  -->

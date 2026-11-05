@@ -50,6 +50,36 @@ public sealed partial class MainWindow
                 }
             )
         );
+        Root.KeyboardAccelerators.Add(
+            Accelerator(
+                Windows.System.VirtualKey.Number4,
+                (_, a) =>
+                {
+                    ShowPage(AppPage.Compare);
+                    a.Handled = true;
+                }
+            )
+        );
+        Root.KeyboardAccelerators.Add(
+            Accelerator(
+                Windows.System.VirtualKey.Number5,
+                (_, a) =>
+                {
+                    ShowPage(AppPage.FileHistory);
+                    a.Handled = true;
+                }
+            )
+        );
+        Root.KeyboardAccelerators.Add(
+            Accelerator(
+                Windows.System.VirtualKey.Number6,
+                (_, a) =>
+                {
+                    ShowPage(AppPage.Recovery);
+                    a.Handled = true;
+                }
+            )
+        );
         var refresh = new KeyboardAccelerator { Key = Windows.System.VirtualKey.F5 };
         refresh.Invoked += async (_, a) =>
         {
@@ -57,6 +87,11 @@ public sealed partial class MainWindow
             {
                 a.Handled = true;
                 await Changes.RefreshAsync();
+            }
+            else if (ViewModel.ShowRecovery)
+            {
+                a.Handled = true;
+                await ViewModel.LoadRecoveryAsync();
             }
             else if (ViewModel.ShowHealth)
             {
@@ -128,6 +163,9 @@ public sealed partial class MainWindow
         Style(NavHistory, NavHistoryIcon, NavHistoryText, active: page == AppPage.History);
         Style(NavChanges, NavChangesIcon, NavChangesText, active: page == AppPage.Changes);
         Style(NavHealth, NavHealthIcon, NavHealthText, active: page == AppPage.Health);
+        Style(NavRecovery, NavRecoveryIcon, NavRecoveryText, active: page == AppPage.Recovery);
+        Style(NavFileHistory, NavFileHistoryIcon, NavFileHistoryText, active: page == AppPage.FileHistory);
+        Style(NavCompare, NavCompareIcon, NavCompareText, active: page == AppPage.Compare);
 
         static void Style(Button button, FontIcon icon, TextBlock text, bool active)
         {

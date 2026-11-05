@@ -29,6 +29,13 @@ jobs:
       - name: Test
         run: dotnet test CentralGit.slnx -m:1
 
+      # Previous release's packages, so vpk can build a small delta update. Nothing to fetch the first time.
+      - name: Download previous release
+        continue-on-error: true
+        run: |
+          dotnet tool restore
+          dotnet vpk download github --repoUrl https://github.com/${{ github.repository }} --channel win --outputDir artifacts/releases --token ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build installer
         shell: powershell
         run: .\installer\build.ps1 -Version ${{ steps.version.outputs.value }}
@@ -37,7 +44,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: CentralGit ${{ steps.version.outputs.value }}
-          files: artifacts/setup/CentralGit-Setup-${{ steps.version.outputs.value }}.exe
+          # The setup exe for people, plus Velopack's feed (releases.win.json + packages) for in-app updates.
+          files: |
+            artifacts/setup/CentralGit-Setup-${{ steps.version.outputs.value }}.exe
+            artifacts/releases/releases.win.json
+            artifacts/releases/CentralGit-${{ steps.version.outputs.value }}-*.nupkg
           generate_release_notes: true
           body: |
             Download **CentralGit-Setup-${{ steps.version.outputs.value }}.exe** below and run it.

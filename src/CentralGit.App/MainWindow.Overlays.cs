@@ -111,6 +111,7 @@ public sealed partial class MainWindow
         SettingsRepositoriesNav.Background = Settings.IsRepositories ? on : off;
         SettingsAccountsNav.Background = Settings.IsAccounts ? on : off;
         SettingsAppearanceNav.Background = Settings.IsAppearance ? on : off;
+        SettingsAboutNav.Background = Settings.IsAbout ? on : off;
     }
 
     private void OnOpenSettings(object sender, RoutedEventArgs e) => OpenSettings(SettingsSection.Repositories);
@@ -133,6 +134,35 @@ public sealed partial class MainWindow
     {
         Settings.Section = SettingsSection.Appearance;
         UpdateSettingsNav();
+    }
+
+    private void OnSettingsAbout(object sender, RoutedEventArgs e)
+    {
+        Settings.Section = SettingsSection.About;
+        UpdateSettingsNav();
+    }
+
+    private void OnOpenAbout(object sender, RoutedEventArgs e) => OpenSettings(SettingsSection.About);
+
+    private async void OnCheckForUpdates(object sender, RoutedEventArgs e) => await Updates.CheckAsync();
+
+    private async void OnRestartToUpdate(object sender, RoutedEventArgs e)
+    {
+        // Restarting kills git mid-operation; a push or pull finishes first.
+        if (ViewModel.Operations.IsBusy)
+        {
+            var dialog = new ContentDialog
+            {
+                XamlRoot = Root.XamlRoot,
+                RequestedTheme = ThemeService.ContentTheme,
+                Title = "An operation is still running",
+                Content = "Restart to update once it has finished, so git isn't stopped halfway.",
+                CloseButtonText = "OK",
+            };
+            await dialog.ShowAsync();
+            return;
+        }
+        Updates.Restart();
     }
 
     private void OnThemeChoice(object sender, RoutedEventArgs e)

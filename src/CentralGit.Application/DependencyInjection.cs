@@ -1,5 +1,6 @@
 using CentralGit.Application.Features.Accounts;
 using CentralGit.Application.Features.Repositories;
+using CentralGit.Application.Features.Updates;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CentralGit.Application;
@@ -12,6 +13,7 @@ public static class DependencyInjection
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IRepositoryService, RepositoryService>();
         services.AddSingleton<IAccountService, AccountService>();
+        services.AddSingleton<IUpdateService, UpdateService>();
         return services;
     }
 }

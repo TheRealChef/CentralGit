@@ -40,6 +40,7 @@ public partial class App : Microsoft.UI.Xaml.Application
             .AddSingleton<SwitcherViewModel>()
             .AddSingleton<SettingsViewModel>()
             .AddSingleton<BranchPickerViewModel>()
+            .AddSingleton<UpdatesViewModel>()
             .AddSingleton<MainWindow>();
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true });
     }

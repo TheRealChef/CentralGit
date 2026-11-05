@@ -17,6 +17,7 @@ public static class OperationArguments
             SwitchBranch s => BranchOperations.Switch(s.Branch),
             TrackRemoteBranch t => BranchOperations.Track(t.RemoteBranch),
             CreateBranch c => BranchOperations.Create(c.Name, c.StartPoint),
+            CreateBranchAt c => BranchOperations.CreateAt(c.Name, c.Commit),
             RenameBranch r => BranchOperations.Rename(r.From, r.To),
             DeleteBranch d => BranchOperations.Delete(d.Name, d.Force),
             DeleteBranches d => BranchOperations.DeleteMany(d.Names),

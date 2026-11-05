@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- Adapters behind the Application's ports: the git CLI, JSON files, Windows Credential Manager, the file system. -->
+  <!-- Adapters behind the Application's ports: the git CLI, JSON files, Windows Credential Manager, the file system, Velopack updates. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>CentralGit.Infrastructure</RootNamespace>
@@ -14,5 +14,9 @@
   <ItemGroup>
     <ProjectReference Include="..\CentralGit.Application\CentralGit.Application.csproj" />
     <ProjectReference Include="..\CentralGit.Domain\CentralGit.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Velopack" Version="1.2.161" />
   </ItemGroup>
 </Project>

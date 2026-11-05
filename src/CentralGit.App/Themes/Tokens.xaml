@@ -336,6 +336,17 @@
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     </Style>
 
+    <!--  File History: two- or three-line rows of varying height.  -->
+    <Style x:Key="RevisionItemStyle"
+           TargetType="ListViewItem"
+           BasedOn="{StaticResource DefaultListViewItemStyle}">
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="6,1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+
     <Style x:Key="CardStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource SurfaceBrush}" />
         <Setter Property="CornerRadius" Value="10" />

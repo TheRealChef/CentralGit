@@ -1,7 +1,9 @@
 using CentralGit.Application.Features.Branches;
 using CentralGit.Application.Features.Changes;
+using CentralGit.Application.Features.Compare;
 using CentralGit.Application.Features.Health;
 using CentralGit.Application.Features.History;
+using CentralGit.Application.Features.Recovery;
 using CentralGit.Application.Features.Sync;
 using CentralGit.Application.Ports;
 using CentralGit.Application.Settings;
@@ -20,6 +22,8 @@ public sealed class RepositorySession(IGitRepository repository, TimeProvider ti
     public IBranchService Branches { get; } = new BranchService(repository, repository);
     public ISyncService Sync { get; } = new SyncService(repository, repository);
     public IHealthService Health { get; } = new HealthService(repository, time);
+    public IRecoveryService Recovery { get; } = new RecoveryService(repository, repository);
+    public ICompareService Compare { get; } = new CompareService(repository);
 }
 
 public sealed record LocatedRepositories(string? Selected, IReadOnlyList<DiscoveredRepository> Discovered);

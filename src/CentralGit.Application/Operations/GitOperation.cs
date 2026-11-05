@@ -25,6 +25,9 @@ public sealed record TrackRemoteBranch(string RemoteBranch) : GitOperation;
 /// <summary>Create a branch at <see cref="StartPoint"/> (null = HEAD) and switch to it.</summary>
 public sealed record CreateBranch(string Name, string? StartPoint) : GitOperation;
 
+/// <summary>Create a branch at a commit without switching to it (Recovery).</summary>
+public sealed record CreateBranchAt(string Name, string Commit) : GitOperation;
+
 public sealed record RenameBranch(string From, string To) : GitOperation;
 
 /// <summary>Without <see cref="Force"/> git refuses to delete unmerged work.</summary>

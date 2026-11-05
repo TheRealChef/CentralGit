@@ -130,7 +130,7 @@ public static class CommitDetailsReader
         return result;
     }
 
-    private static IReadOnlyList<ChangedFile> MergeFileLists(
+    internal static IReadOnlyList<ChangedFile> MergeFileLists(
         IReadOnlyList<(ChangeKind Kind, string Path, string? OldPath)> names,
         IReadOnlyDictionary<string, (int Added, int Deleted, bool Binary)> stats
     ) =>
