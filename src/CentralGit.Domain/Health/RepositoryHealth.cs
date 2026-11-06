@@ -96,8 +96,29 @@ public sealed record RepositoryFacts(
     IReadOnlyList<RemoteUrl> Remotes,
     string? GitVersion,
     string? UserName,
-    string? UserEmail
+    string? UserEmail,
+    IReadOnlyList<SubmoduleInfo>? Submodules = null,
+    LfsInfo? Lfs = null
 );
+
+public enum SubmoduleState
+{
+    NotInitialized,
+    UpToDate,
+    DifferentCommit,
+}
+
+/// <summary>A submodule: the commit the parent records for it, and the one checked out (null when not initialized).</summary>
+public sealed record SubmoduleInfo(string Path, string Recorded, string? CheckedOut)
+{
+    public SubmoduleState State =>
+        CheckedOut is null ? SubmoduleState.NotInitialized
+        : CheckedOut == Recorded ? SubmoduleState.UpToDate
+        : SubmoduleState.DifferentCommit;
+}
+
+/// <summary>Git LFS: tracked files, whether git-lfs is installed, and how many are still pointer files.</summary>
+public sealed record LfsInfo(int Files, bool Installed, int NotDownloaded);
 
 public sealed record HealthReport(
     string? Trunk,
@@ -273,17 +294,70 @@ public static class RepositoryHealth
             facts.GitVersion,
             facts.UserName,
             facts.UserEmail,
-            Diagnose(
-                facts.Stats,
-                branches.Local,
-                branches.Remote,
-                facts.Remotes,
-                facts.UserName,
-                facts.UserEmail,
-                branches.Trunk,
-                now
-            )
+            [
+                .. Diagnose(
+                    facts.Stats,
+                    branches.Local,
+                    branches.Remote,
+                    facts.Remotes,
+                    facts.UserName,
+                    facts.UserEmail,
+                    branches.Trunk,
+                    now
+                ),
+                .. DiagnoseSubmodules(facts.Submodules ?? []),
+                .. DiagnoseLfs(facts.Lfs),
+            ]
         );
+
+    public static IEnumerable<HealthFinding> DiagnoseSubmodules(IReadOnlyList<SubmoduleInfo> submodules)
+    {
+        if (submodules.Count == 0)
+            yield break;
+        var missing = submodules.Where(s => s.State == SubmoduleState.NotInitialized).Select(s => s.Path).ToList();
+        var moved = submodules.Where(s => s.State == SubmoduleState.DifferentCommit).Select(s => s.Path).ToList();
+        if (missing.Count > 0)
+            yield return new(
+                FindingLevel.Attention,
+                $"{Plural(missing.Count, "submodule", "submodules")} not checked out",
+                $"{Names(missing)} {(missing.Count == 1 ? "is" : "are")} empty. Run git submodule update --init --recursive to fetch {(missing.Count == 1 ? "it" : "them")}."
+            );
+        if (moved.Count > 0)
+            yield return new(
+                FindingLevel.Attention,
+                $"{Plural(moved.Count, "submodule", "submodules")} on a different commit",
+                $"{Names(moved)} {(moved.Count == 1 ? "doesn't" : "don't")} match the commit this repository records. Commit the new pointer if that's intended, or run git submodule update to go back."
+            );
+        if (missing.Count == 0 && moved.Count == 0)
+            yield return new(
+                FindingLevel.Good,
+                $"{Plural(submodules.Count, "submodule", "submodules")} in sync",
+                "Each one is checked out at the commit this repository records."
+            );
+
+        static string Names(IReadOnlyList<string> paths) =>
+            string.Join(", ", paths.Take(4)) + (paths.Count > 4 ? $" and {paths.Count - 4} more" : "");
+    }
+
+    public static IEnumerable<HealthFinding> DiagnoseLfs(LfsInfo? lfs)
+    {
+        if (lfs is not { Files: > 0 } info)
+            yield break;
+        if (!info.Installed)
+            yield return new(
+                FindingLevel.Attention,
+                "Uses Git LFS, but git-lfs isn't installed",
+                $"{Plural(info.Files, "file is", "files are")} stored in LFS. Install Git LFS (it ships with Git for Windows; run git lfs install) or they stay small pointer files."
+            );
+        else if (info.NotDownloaded > 0)
+            yield return new(
+                FindingLevel.Attention,
+                $"{Plural(info.NotDownloaded, "LFS file", "LFS files")} not downloaded",
+                "They're pointer files in your working tree, not the real content. Run git lfs pull."
+            );
+        else
+            yield return new(FindingLevel.Good, $"{Plural(info.Files, "file", "files")} in Git LFS", "All downloaded.");
+    }
 
     public static IReadOnlyList<HealthFinding> Diagnose(
         RepositoryStats stats,

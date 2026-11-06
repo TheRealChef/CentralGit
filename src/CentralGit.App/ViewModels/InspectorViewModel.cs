@@ -106,6 +106,13 @@ public sealed partial class InspectorViewModel : ObservableObject
         }
     }
 
+    /// <summary>Rebuilds the diff rows after a layout setting changed (line wrapping).</summary>
+    public void Relayout()
+    {
+        if (_currentDiff is { } diff && _selectedFile is { } file)
+            _ = ShowDiffAsync(diff, file, CancellationToken.None);
+    }
+
     public bool IsUnified
     {
         get => !_isSplit;

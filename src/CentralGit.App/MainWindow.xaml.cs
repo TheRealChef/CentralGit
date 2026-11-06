@@ -92,6 +92,7 @@ public sealed partial class MainWindow : Window
         InitializeHealth();
         InitializeRecovery();
         InitializeCompare();
+        InitializeWorkflow();
         InitializePanes();
 
         ExtendsContentIntoTitleBar = true;
@@ -383,7 +384,13 @@ public sealed partial class MainWindow : Window
 
     private void OnEscapeAccelerator(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
-        // Esc closes the innermost thing first: switcher, then settings, then steps back a mode.
+        // Esc closes the innermost thing first: palette, switcher, then settings, then steps back a mode.
+        if (ClosePalette())
+        {
+            FocusSelectedCommit();
+            args.Handled = true;
+            return;
+        }
         if (SwitcherOverlay.Visibility == Visibility.Visible)
         {
             CloseSwitcher();
@@ -491,7 +498,7 @@ public sealed partial class MainWindow : Window
 
     private void OnCommandPaletteAccelerator(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
-        CommandBox.Focus(FocusState.Keyboard);
+        OpenPalette();
         args.Handled = true;
     }
 

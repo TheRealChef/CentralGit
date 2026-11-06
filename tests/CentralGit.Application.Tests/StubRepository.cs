@@ -7,6 +7,7 @@ using CentralGit.Domain.Commits;
 using CentralGit.Domain.Diff;
 using CentralGit.Domain.Health;
 using CentralGit.Domain.Recovery;
+using CentralGit.Domain.Workflow;
 
 namespace CentralGit.Application.Tests;
 
@@ -82,6 +83,49 @@ internal sealed class StubRepository(string path) : IGitRepository
     ) => No<GitResult>();
 
     public Task<GitResult> DiscardHunkAsync(FileDiff diff, int hunk, CancellationToken ct = default) => No<GitResult>();
+
+    public Task<GitResult> ApplyLinesToIndexAsync(
+        FileDiff diff,
+        int hunk,
+        IReadOnlySet<int> lines,
+        ChangeSide side,
+        CancellationToken ct = default
+    ) => No<GitResult>();
+
+    public Task<GitResult> DiscardLinesAsync(
+        FileDiff diff,
+        int hunk,
+        IReadOnlySet<int> lines,
+        CancellationToken ct = default
+    ) => No<GitResult>();
+
+    public Task<InProgress> GetInProgressAsync(CancellationToken ct = default) => No<InProgress>();
+
+    public Task<GitResult> ResolveConflictAsync(string path, ConflictSide side, CancellationToken ct = default) =>
+        No<GitResult>();
+
+    public Task<string?> ReadWorkingFileAsync(string path, CancellationToken ct = default) => No<string?>();
+
+    public Task<GitResult> SaveResolvedFileAsync(string path, string text, CancellationToken ct = default) =>
+        No<GitResult>();
+
+    public Task<RebaseRange> GetRebaseRangeAsync(string commit, CancellationToken ct = default) => No<RebaseRange>();
+
+    public Task<BisectState> GetBisectAsync(CancellationToken ct = default) => No<BisectState>();
+
+    public Task<bool> RefreshCommitGraphAsync(TimeSpan maxAge, CancellationToken ct = default) => No<bool>();
+
+    public Task<IReadOnlyList<Tag>> GetTagsAsync(CancellationToken ct = default) => No<IReadOnlyList<Tag>>();
+
+    public Task<bool> IsValidTagNameAsync(string name, CancellationToken ct = default) => No<bool>();
+
+    public Task<IReadOnlyList<Stash>> GetStashesAsync(CancellationToken ct = default) => No<IReadOnlyList<Stash>>();
+
+    public Task<IReadOnlyList<StashFile>> GetStashFilesAsync(Stash stash, CancellationToken ct = default) =>
+        No<IReadOnlyList<StashFile>>();
+
+    public Task<IReadOnlyList<BlameLine>> BlameAsync(string path, string? revision, CancellationToken ct = default) =>
+        No<IReadOnlyList<BlameLine>>();
 
     public Task<GitResult> DiscardAsync(FileChange change, CancellationToken ct = default) => No<GitResult>();
 

@@ -92,6 +92,8 @@ public static class HealthReader
         var nameTask = git.RunAsync(path, ["config", "user.name"], ct);
         var emailTask = git.RunAsync(path, ["config", "user.email"], ct);
         var lastCommitTask = git.RunAsync(path, ["log", "-1", "--format=%ct", "HEAD"], ct);
+        var submodulesTask = ReadSubmodulesAsync(git, path, ct);
+        var lfsTask = ReadLfsAsync(git, path, ct);
 
         var commits = int.TryParse((await countTask.ConfigureAwait(false)).StandardOutput.Trim(), out var c) ? c : 0;
 
@@ -136,9 +138,87 @@ public static class HealthReader
             lastFetch,
             lastCommit
         );
-        return new RepositoryFacts(stats, remotes, version, userName, userEmail);
+        return new RepositoryFacts(
+            stats,
+            remotes,
+            version,
+            userName,
+            userEmail,
+            await submodulesTask.ConfigureAwait(false),
+            await lfsTask.ConfigureAwait(false)
+        );
 
         static string? Trimmed(GitResult r) => r.Succeeded && r.StandardOutput.Trim() is { Length: > 0 } s ? s : null;
+    }
+
+    /// <summary>
+    /// Gitlinks (mode 160000) from the index, each compared with what is checked out in its folder.
+    /// Only looked at when there is a <c>.gitmodules</c>; capped so a monorepo of submodules stays quick.
+    /// </summary>
+    internal static async Task<IReadOnlyList<SubmoduleInfo>> ReadSubmodulesAsync(
+        GitRunner git,
+        string path,
+        CancellationToken ct
+    )
+    {
+        if (!File.Exists(Path.Combine(path, ".gitmodules")))
+            return [];
+        var staged = await git.RunAsync(path, ["ls-files", "-s", "-z"], ct).ConfigureAwait(false);
+        if (!staged.Succeeded)
+            return [];
+        var result = new List<SubmoduleInfo>();
+        foreach (var entry in staged.StandardOutput.Split('\0', StringSplitOptions.RemoveEmptyEntries))
+        {
+            // "<mode> <object> <stage>\t<path>"
+            if (!entry.StartsWith("160000 ", StringComparison.Ordinal) || entry.IndexOf('\t') is not (var tab and > 0))
+                continue;
+            var recorded = entry[7..entry.IndexOf(' ', 7)];
+            var sub = entry[(tab + 1)..];
+            var folder = Path.Combine(path, sub);
+            string? checkedOut = null;
+            // Without its own .git, running git in the folder would answer for the parent repository.
+            if (File.Exists(Path.Combine(folder, ".git")) || Directory.Exists(Path.Combine(folder, ".git")))
+            {
+                var head = await git.RunAsync(folder, ["rev-parse", "--verify", "-q", "HEAD"], ct)
+                    .ConfigureAwait(false);
+                checkedOut = head.Succeeded ? head.StandardOutput.Trim() : null;
+            }
+            result.Add(new SubmoduleInfo(sub, recorded, checkedOut));
+            if (result.Count >= 100)
+                break;
+        }
+        return result;
+    }
+
+    private const string LfsPointerStart = "version https://git-lfs.github.com/spec/v1";
+
+    /// <summary>Files whose attributes route them through LFS, and how many are still pointer files on disk.</summary>
+    internal static async Task<LfsInfo?> ReadLfsAsync(GitRunner git, string path, CancellationToken ct)
+    {
+        var tracked = await git.RunAsync(path, ["ls-files", "-z", "--", ":(attr:filter=lfs)"], ct)
+            .ConfigureAwait(false);
+        if (!tracked.Succeeded)
+            return null;
+        var files = tracked.StandardOutput.Split('\0', StringSplitOptions.RemoveEmptyEntries);
+        if (files.Length == 0)
+            return new LfsInfo(0, false, 0);
+        var installed = (await git.RunAsync(path, ["lfs", "version"], ct).ConfigureAwait(false)).Succeeded;
+        var pointers = 0;
+        var buffer = new byte[LfsPointerStart.Length];
+        foreach (var file in files.Take(500))
+        {
+            try
+            {
+                await using var stream = File.OpenRead(Path.Combine(path, file));
+                var read = await stream
+                    .ReadAtLeastAsync(buffer, buffer.Length, throwOnEndOfStream: false, ct)
+                    .ConfigureAwait(false);
+                if (read == buffer.Length && System.Text.Encoding.ASCII.GetString(buffer) == LfsPointerStart)
+                    pointers++;
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+        }
+        return new LfsInfo(files.Length, installed, pointers);
     }
 
     internal static (int Last30Days, int Contributors) ParseRecent(string output, DateTimeOffset now)

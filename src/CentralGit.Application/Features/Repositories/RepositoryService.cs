@@ -3,8 +3,10 @@ using CentralGit.Application.Features.Changes;
 using CentralGit.Application.Features.Compare;
 using CentralGit.Application.Features.Health;
 using CentralGit.Application.Features.History;
+using CentralGit.Application.Features.Hosting;
 using CentralGit.Application.Features.Recovery;
 using CentralGit.Application.Features.Sync;
+using CentralGit.Application.Features.Workflow;
 using CentralGit.Application.Ports;
 using CentralGit.Application.Settings;
 using CentralGit.Domain.Repositories;
@@ -12,7 +14,7 @@ using CentralGit.Domain.Repositories;
 namespace CentralGit.Application.Features.Repositories;
 
 /// <summary>The feature services of one open repository. Opening another repository makes a new session.</summary>
-public sealed class RepositorySession(IGitRepository repository, TimeProvider time)
+public sealed class RepositorySession(IGitRepository repository, TimeProvider time, IHostingProvider? hosting = null)
 {
     public string Path => repository.Path;
     public string Name => repository.Name;
@@ -24,6 +26,15 @@ public sealed class RepositorySession(IGitRepository repository, TimeProvider ti
     public IHealthService Health { get; } = new HealthService(repository, time);
     public IRecoveryService Recovery { get; } = new RecoveryService(repository, repository);
     public ICompareService Compare { get; } = new CompareService(repository);
+    public ICommitActionService Actions { get; } = new CommitActionService(repository, repository);
+    public ITagService Tags { get; } = new TagService(repository, repository);
+    public IStashService Stashes { get; } = new StashService(repository, repository, repository);
+    public IBlameService Blame { get; } = new BlameService(repository);
+    public IHostingService Hosting { get; } = new HostingService(repository, hosting ?? new NoHostingProvider());
+
+    /// <summary>Keeps git's commit-graph cache fresh (at most daily) so big histories page quickly.</summary>
+    public Task<bool> RefreshCommitGraphAsync(CancellationToken ct = default) =>
+        repository.RefreshCommitGraphAsync(TimeSpan.FromDays(1), ct);
 }
 
 public sealed record LocatedRepositories(string? Selected, IReadOnlyList<DiscoveredRepository> Discovered);
@@ -58,7 +69,8 @@ public sealed class RepositoryService(
     IRepositoryFileSystem files,
     IRepositoryGlances glances,
     ISettingsStore settings,
-    TimeProvider time
+    TimeProvider time,
+    IHostingProvider hosting
 ) : IRepositoryService
 {
     public IReadOnlyList<DiscoveredRepository> Discover(AppSettings settings, CancellationToken ct = default)
@@ -95,7 +107,7 @@ public sealed class RepositoryService(
 
     public RepositorySession Open(string path)
     {
-        var session = new RepositorySession(repositories.Open(path), time);
+        var session = new RepositorySession(repositories.Open(path), time, hosting);
         settings.Update(s => s.WithOpened(path, time.GetLocalNow()));
         return session;
     }

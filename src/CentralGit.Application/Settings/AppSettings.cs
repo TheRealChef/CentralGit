@@ -50,6 +50,9 @@ public sealed record AppSettings
     public AppTheme Theme { get; init; } = AppTheme.Dark;
     public bool DarkChromeInLight { get; init; } = true;
 
+    /// <summary>Long diff lines wrap to the pane (default) or stay on one line and scroll sideways.</summary>
+    public bool WrapDiffLines { get; init; } = true;
+
     public ScanOptions ToScanOptions() =>
         new()
         {

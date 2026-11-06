@@ -246,6 +246,9 @@ public sealed partial class CompareViewModel : ObservableObject
         OnPropertyChanged(string.Empty);
     }
 
+    /// <summary>Rebuilds the diff rows after a layout setting changed (line wrapping).</summary>
+    public void Relayout() => _ = LoadDiffAsync(_selectedFile);
+
     private async Task LoadDiffAsync(ChangedFileViewModel? file)
     {
         _diffCts?.Cancel();

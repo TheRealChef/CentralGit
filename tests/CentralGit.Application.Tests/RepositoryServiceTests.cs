@@ -1,3 +1,4 @@
+using CentralGit.Application.Features.Hosting;
 using CentralGit.Application.Features.Repositories;
 using CentralGit.Application.Ports;
 using CentralGit.Application.Settings;
@@ -19,7 +20,8 @@ public class RepositoryServiceTests
         _files.Repositories[@"E:\Elsewhere\app"] = new DateTime(2026, 1, 1);
     }
 
-    private RepositoryService Service => new(new NoGit(), _files, new NoGlances(), _settings, new FixedClock(Now));
+    private RepositoryService Service =>
+        new(new NoGit(), _files, new NoGlances(), _settings, new FixedClock(Now), new NoHostingProvider());
 
     [Fact]
     public void Launch_opens_the_requested_path_first()

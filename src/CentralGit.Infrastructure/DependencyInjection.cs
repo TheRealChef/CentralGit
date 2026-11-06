@@ -1,6 +1,7 @@
 using CentralGit.Application.Ports;
 using CentralGit.Infrastructure.FileSystem;
 using CentralGit.Infrastructure.Git;
+using CentralGit.Infrastructure.Hosting;
 using CentralGit.Infrastructure.Storage;
 using CentralGit.Infrastructure.Updates;
 using CentralGit.Infrastructure.Windows;
@@ -22,6 +23,8 @@ public static class DependencyInjection
         services.AddSingleton<ILayoutStore>(_ => new LayoutStore());
         services.AddSingleton<ICredentialStore, CredentialVault>();
         services.AddSingleton<IAppUpdater, VelopackUpdater>();
+        services.AddSingleton<IExternalTools, ExternalTools>();
+        services.AddSingleton<IHostingProvider, GitHubHosting>();
         return services;
     }
 }

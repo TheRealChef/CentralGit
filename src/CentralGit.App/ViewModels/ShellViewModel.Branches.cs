@@ -16,6 +16,9 @@ public sealed partial class ShellViewModel
     public string? CurrentBranch => _branch?.Head;
 
     private IReadOnlyList<LocalBranch> _localBranches = [];
+
+    /// <summary>Every local branch from the last refresh (the sidebar may hide some in collapsed folders).</summary>
+    public IReadOnlyList<LocalBranch> LocalBranches => _localBranches;
     private readonly HashSet<string> _collapsedFolders = new(StringComparer.Ordinal);
 
     /// <summary>Sidebar rows from the last branch list, honouring collapsed folders.</summary>

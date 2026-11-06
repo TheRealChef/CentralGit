@@ -6,6 +6,7 @@ using CentralGit.Domain.Commits;
 using CentralGit.Domain.Diff;
 using CentralGit.Domain.Health;
 using CentralGit.Domain.Recovery;
+using CentralGit.Domain.Workflow;
 
 namespace CentralGit.Application.Ports;
 
@@ -86,6 +87,18 @@ public interface IWorkingTreeSource
     /// <summary>Stages a hunk of an unstaged diff, or unstages a hunk of a staged diff.</summary>
     Task<GitResult> ApplyHunkToIndexAsync(FileDiff diff, int hunk, ChangeSide side, CancellationToken ct = default);
 
+    /// <summary>Stages (or unstages) only the chosen changed lines of a hunk; <paramref name="lines"/> index its Lines.</summary>
+    Task<GitResult> ApplyLinesToIndexAsync(
+        FileDiff diff,
+        int hunk,
+        IReadOnlySet<int> lines,
+        ChangeSide side,
+        CancellationToken ct = default
+    );
+
+    /// <summary>Throws away only the chosen unstaged lines of a hunk. Destructive: ask first.</summary>
+    Task<GitResult> DiscardLinesAsync(FileDiff diff, int hunk, IReadOnlySet<int> lines, CancellationToken ct = default);
+
     /// <summary>Throws away one unstaged hunk. Destructive: ask first.</summary>
     Task<GitResult> DiscardHunkAsync(FileDiff diff, int hunk, CancellationToken ct = default);
 
@@ -119,6 +132,46 @@ public interface IRecoverySource
     Task<IReadOnlySet<string>> FindUnreachableAsync(IEnumerable<string> hashes, CancellationToken ct = default);
 }
 
+/// <summary>Stopped operations, conflicts, tags, the stash and blame.</summary>
+public interface IWorkflowSource
+{
+    /// <summary>A merge, rebase, cherry-pick or revert that stopped half-way, if any.</summary>
+    Task<InProgress> GetInProgressAsync(CancellationToken ct = default);
+
+    /// <summary>Resolves a conflicted file by taking one side whole, and marks it resolved (stages it).</summary>
+    Task<GitResult> ResolveConflictAsync(string path, ConflictSide side, CancellationToken ct = default);
+
+    /// <summary>The conflicted file as it is in the working tree (with markers); null when it is gone or binary.</summary>
+    Task<string?> ReadWorkingFileAsync(string path, CancellationToken ct = default);
+
+    /// <summary>Writes the resolved text over the file (keeping its BOM) and marks it resolved (stages it).</summary>
+    Task<GitResult> SaveResolvedFileAsync(string path, string text, CancellationToken ct = default);
+
+    /// <summary>The commits from <paramref name="commit"/> (inclusive) up to HEAD, oldest first, and the commit below them.</summary>
+    Task<RebaseRange> GetRebaseRangeAsync(string commit, CancellationToken ct = default);
+
+    /// <summary>Where a bisect stands; <see cref="BisectState.Inactive"/> when none is running.</summary>
+    Task<BisectState> GetBisectAsync(CancellationToken ct = default);
+
+    /// <summary>Newest first (by tag or commit date).</summary>
+    Task<IReadOnlyList<Tag>> GetTagsAsync(CancellationToken ct = default);
+
+    /// <summary>Whether git accepts <paramref name="name"/> as a tag name.</summary>
+    Task<bool> IsValidTagNameAsync(string name, CancellationToken ct = default);
+
+    /// <summary>Newest first: stash@{0}, stash@{1}…</summary>
+    Task<IReadOnlyList<Stash>> GetStashesAsync(CancellationToken ct = default);
+
+    /// <summary>What a stash holds: tracked changes, plus untracked files when it saved those too.</summary>
+    Task<IReadOnlyList<StashFile>> GetStashFilesAsync(Stash stash, CancellationToken ct = default);
+
+    /// <summary>
+    /// Who last changed each line of <paramref name="path"/> at <paramref name="revision"/>
+    /// (null = the working tree, so uncommitted lines show as such).
+    /// </summary>
+    Task<IReadOnlyList<BlameLine>> BlameAsync(string path, string? revision, CancellationToken ct = default);
+}
+
 /// <summary>Turns an intent into something the Operations Center can run.</summary>
 public interface IOperationSource
 {
@@ -132,8 +185,15 @@ public interface IGitRepository
         IWorkingTreeSource,
         IHealthSource,
         IRecoverySource,
+        IWorkflowSource,
         IOperationSource
 {
+    /// <summary>
+    /// Writes git's commit-graph cache (with changed-path filters) when it is missing or older than
+    /// <paramref name="maxAge"/>, so History and File History stay fast on big repositories. True when written.
+    /// </summary>
+    Task<bool> RefreshCommitGraphAsync(TimeSpan maxAge, CancellationToken ct = default);
+
     string Path { get; }
     string Name { get; }
 }

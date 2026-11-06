@@ -1,5 +1,6 @@
 using CentralGit.Application.Settings;
 using CentralGit.Domain.Accounts;
+using CentralGit.Domain.Hosting;
 using CentralGit.Domain.Repositories;
 
 namespace CentralGit.Application.Ports;
@@ -81,4 +82,36 @@ public interface IAppUpdater
 
     /// <summary>Closes the app, installs the downloaded update and starts the new version.</summary>
     void RestartInto(AvailableUpdate update);
+}
+
+/// <summary>Programs outside CentralGit that a folder or file can be handed to.</summary>
+public enum ExternalTool
+{
+    Explorer,
+    Terminal,
+    Editor,
+}
+
+/// <summary>Opens the repository (or one file in it) in Explorer, a terminal or a code editor.</summary>
+public interface IExternalTools
+{
+    /// <summary>Starts the tool; returns why it couldn't, or null when it started.</summary>
+    string? Open(ExternalTool tool, string folder, string? file = null);
+
+    /// <summary>Opens a web page in the default browser; returns why it couldn't, or null.</summary>
+    string? OpenUrl(string url);
+}
+
+/// <summary>A code host's API (GitHub): pull requests and CI checks. Failures read as "nothing known", never throw.</summary>
+public interface IHostingProvider
+{
+    /// <summary>The open pull request whose head is <paramref name="branch"/> in this repository; null if none or unknown.</summary>
+    Task<PullRequest?> FindOpenPullRequestAsync(
+        HostedRepository repository,
+        string branch,
+        CancellationToken ct = default
+    );
+
+    /// <summary>The combined state of the check runs on <paramref name="commit"/>.</summary>
+    Task<CheckState> GetChecksAsync(HostedRepository repository, string commit, CancellationToken ct = default);
 }

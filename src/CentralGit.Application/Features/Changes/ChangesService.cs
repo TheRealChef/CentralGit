@@ -31,6 +31,12 @@ public interface IChangesService
     Task<GitResult> UnstageAllAsync(bool hasHead);
     Task<GitResult> ApplyHunkToIndexAsync(FileDiff diff, int hunk, ChangeSide side);
     Task<GitResult> DiscardHunkAsync(FileDiff diff, int hunk);
+
+    /// <summary>Stages (unstaged side) or unstages (staged side) only the chosen lines of a hunk.</summary>
+    Task<GitResult> ApplyLinesToIndexAsync(FileDiff diff, int hunk, IReadOnlySet<int> lines, ChangeSide side);
+
+    /// <summary>Throws away only the chosen unstaged lines of a hunk. Destructive: ask first.</summary>
+    Task<GitResult> DiscardLinesAsync(FileDiff diff, int hunk, IReadOnlySet<int> lines);
     Task<GitResult> DiscardAsync(FileChange change);
 
     /// <summary>
@@ -74,6 +80,12 @@ public sealed class ChangesService(IWorkingTreeSource repository) : IChangesServ
         repository.ApplyHunkToIndexAsync(diff, hunk, side);
 
     public Task<GitResult> DiscardHunkAsync(FileDiff diff, int hunk) => repository.DiscardHunkAsync(diff, hunk);
+
+    public Task<GitResult> ApplyLinesToIndexAsync(FileDiff diff, int hunk, IReadOnlySet<int> lines, ChangeSide side) =>
+        repository.ApplyLinesToIndexAsync(diff, hunk, lines, side);
+
+    public Task<GitResult> DiscardLinesAsync(FileDiff diff, int hunk, IReadOnlySet<int> lines) =>
+        repository.DiscardLinesAsync(diff, hunk, lines);
 
     public Task<GitResult> DiscardAsync(FileChange change) => repository.DiscardAsync(change);
 

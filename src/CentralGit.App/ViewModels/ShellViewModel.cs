@@ -34,6 +34,7 @@ public enum AppPage
     Recovery,
     FileHistory,
     Compare,
+    Stashes,
 }
 
 public sealed partial class ShellViewModel : ObservableObject
@@ -43,10 +44,14 @@ public sealed partial class ShellViewModel : ObservableObject
     private readonly IRepositoryService _repositories;
     private readonly ISettingsStore _settings;
     private readonly ILayoutStore _layouts;
+    private readonly IExternalTools _external;
     private RepositorySession? _session;
 
     // Full history as loaded so far (pages appended), plus what the list currently shows.
     private ObservableCollection<CommitRowViewModel> _all = [];
+
+    /// <summary>History rows loaded so far, unfiltered.</summary>
+    public IReadOnlyList<CommitRowViewModel> LoadedCommits => _all;
     private readonly Dictionary<string, CommitRowViewModel> _byHash = new(StringComparer.Ordinal);
     private HistoryBuilder? _builder;
     private bool _hasMoreHistory;
@@ -75,18 +80,35 @@ public sealed partial class ShellViewModel : ObservableObject
     private IReadOnlyList<CommitRowViewModel> _commits = [];
     private CommitRowViewModel? _selectedCommit;
 
-    public ShellViewModel(IRepositoryService repositories, ISettingsStore settings, ILayoutStore layouts)
+    public ShellViewModel(
+        IRepositoryService repositories,
+        ISettingsStore settings,
+        ILayoutStore layouts,
+        IExternalTools external
+    )
     {
         _repositories = repositories;
         _settings = settings;
+        Diff.DiffRowViewModel.WrapLines = settings.Current.WrapDiffLines;
         _layouts = layouts;
+        _external = external;
         FetchCommand = new AsyncRelayCommand(FetchAsync, CanRunRemote);
         InitializeOperations();
         Changes = new ChangesViewModel(
             () => _session!.Changes.ReadStatusAsync(),
             ReloadAsync,
-            status => ChangedFiles = status.ChangedFileCount
+            status =>
+            {
+                ChangedFiles = status.ChangedFileCount;
+                _ = RefreshInProgressAsync(status);
+                _ = RefreshBisectAsync();
+            }
         );
+        Changes.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName is nameof(ChangesViewModel.IsConflictSelected) or nameof(ChangesViewModel.SelectedPath))
+                SyncConflictEditor();
+        };
         Changes.Committed += message => SetStatus(message, error: false);
     }
 
@@ -114,12 +136,15 @@ public sealed partial class ShellViewModel : ObservableObject
             OnPropertyChanged(nameof(ShowRecovery));
             OnPropertyChanged(nameof(ShowFileHistory));
             OnPropertyChanged(nameof(ShowCompare));
+            OnPropertyChanged(nameof(ShowStashes));
             if (value == AppPage.Changes)
                 _ = Changes.RefreshAsync();
             else if (value == AppPage.Compare)
                 _ = LoadCompareAsync();
             else if (value == AppPage.Recovery)
                 _ = LoadRecoveryAsync();
+            else if (value == AppPage.Stashes)
+                _ = LoadStashesAsync();
             else if (value == AppPage.Health)
                 _ = LoadHealthAsync();
         }
@@ -137,6 +162,7 @@ public sealed partial class ShellViewModel : ObservableObject
     public bool ShowRecovery => _page == AppPage.Recovery;
     public bool ShowFileHistory => _page == AppPage.FileHistory;
     public bool ShowCompare => _page == AppPage.Compare;
+    public bool ShowStashes => _page == AppPage.Stashes;
 
     public string? RepositoryPath => _session?.Path;
 
@@ -193,6 +219,7 @@ public sealed partial class ShellViewModel : ObservableObject
                 _forward.Clear();
             }
             _ = Inspector.ShowCommitAsync(value?.Commit.Hash);
+            _ = LoadSelectedChecksAsync(value?.Commit.Hash);
         }
     }
 
@@ -358,8 +385,11 @@ public sealed partial class ShellViewModel : ObservableObject
         _session = _repositories.Open(path);
         Inspector.Attach(_session.History);
         Changes.Attach(_session.Changes);
-        FileHistory.Attach(_session.History);
+        FileHistory.Attach(_session.History, _session.Blame);
         Compare.Attach(_session.Compare);
+        Stashes.Attach(_session.Stashes);
+        ConflictEditor.Attach(_session.Actions);
+        Tags.Clear();
         Inspector.IsSplit = _layouts.Get(path).SplitDiff;
         RepositoryName = _session.Name;
         OnPropertyChanged(nameof(RepositoryPath));
@@ -374,6 +404,17 @@ public sealed partial class ShellViewModel : ObservableObject
         // Recovery is cheap (one reflog read): load it now so the sidebar can show lost commits.
         Recovery.Clear();
         _ = LoadRecoveryAsync();
+        _ = LoadStashesAsync();
+        // Big histories page in ~0.1 s with git's commit-graph instead of ~1 s or more without: keep it fresh.
+        var opened = _session;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await opened.RefreshCommitGraphAsync();
+            }
+            catch (Exception e) when (e is GitException or IOException or InvalidOperationException) { }
+        });
         if (Page == AppPage.Health)
             _ = LoadHealthAsync();
     }
@@ -470,6 +511,10 @@ public sealed partial class ShellViewModel : ObservableObject
             UpdateSyncBanner(status.Branch);
             ChangedFiles = status.ChangedFileCount;
             Changes.Apply(status);
+            _ = RefreshInProgressAsync(status);
+            _ = RefreshBisectAsync();
+            _ = RefreshHostingAsync();
+            _ = LoadTagsAsync(session);
 
             _localBranches = await branchesTask;
             _branchAssessments = await assessTask;
@@ -745,6 +790,12 @@ public sealed partial class ShellViewModel : ObservableObject
             case "accounts":
                 AccountsRequested?.Invoke();
                 break;
+            case "resolve":
+                Page = AppPage.Changes;
+                break;
+            case "stash":
+                await StashChangesAsync(null);
+                break;
             case "stash-switch" when failed.Target is { } target:
                 await StashAndSwitchAsync(target);
                 break;
@@ -770,6 +821,7 @@ public sealed partial class ShellViewModel : ObservableObject
         // Recovery, since deleting or resetting a branch can leave commits only the reflog knows.
         await ReloadAsync();
         _ = LoadRecoveryAsync();
+        _ = LoadStashesAsync();
         if (op.State == OperationState.Succeeded)
             SetStatus(success(), error: false);
         else if (op.State == OperationState.Failed && !op.IsBackground)

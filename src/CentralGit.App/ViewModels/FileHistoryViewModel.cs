@@ -2,11 +2,13 @@ using System.Collections.ObjectModel;
 using CentralGit.App.Diff;
 using CentralGit.App.Theming;
 using CentralGit.Application.Features.History;
+using CentralGit.Application.Features.Workflow;
 using CentralGit.Application.Git;
 using CentralGit.Domain.Changes;
 using CentralGit.Domain.Commits;
 using CentralGit.Domain.Diff;
 using CentralGit.Domain.Text;
+using CentralGit.Domain.Workflow;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Windows.UI;
 
@@ -53,6 +55,11 @@ public sealed class FileRevisionRowViewModel
 public sealed partial class FileHistoryViewModel : ObservableObject
 {
     private IHistoryService? _history;
+    private IBlameService? _blame;
+    private CancellationTokenSource? _blameCts;
+    private bool _showBlame;
+    private IReadOnlyList<BlameRowViewModel> _blameRows = [];
+    private string _blameMessage = "";
     private IReadOnlyList<string>? _files;
     private CancellationTokenSource? _loadCts;
     private CancellationTokenSource? _diffCts;
@@ -103,6 +110,8 @@ public sealed partial class FileHistoryViewModel : ObservableObject
             {
                 OnPropertyChanged(nameof(SelectedTitle));
                 _ = LoadDiffAsync(value);
+                if (_showBlame)
+                    _ = LoadBlameAsync(value);
             }
         }
     }
@@ -121,7 +130,10 @@ public sealed partial class FileHistoryViewModel : ObservableObject
         private set
         {
             if (SetProperty(ref _diffMessage, value))
+            {
                 OnPropertyChanged(nameof(HasDiffMessage));
+                OnPropertyChanged(nameof(HasVisibleDiffMessage));
+            }
         }
     }
 
@@ -146,9 +158,13 @@ public sealed partial class FileHistoryViewModel : ObservableObject
     public bool HasError => _errorText.Length > 0;
 
     /// <summary>A newly opened repository: forget the old file and file list.</summary>
-    public void Attach(IHistoryService history)
+    public void Attach(IHistoryService history, IBlameService blame)
     {
         _history = history;
+        _blame = blame;
+        _blameCts?.Cancel();
+        BlameRows = [];
+        BlameMessage = "";
         _files = null;
         _loadCts?.Cancel();
         _diffCts?.Cancel();
@@ -227,6 +243,14 @@ public sealed partial class FileHistoryViewModel : ObservableObject
             await ShowAsync(_path);
     }
 
+    /// <summary>Rebuilds diff and blame rows after a layout setting changed (line wrapping).</summary>
+    public void Relayout()
+    {
+        _ = LoadDiffAsync(_selected);
+        if (_showBlame)
+            _ = LoadBlameAsync(_selected);
+    }
+
     private async Task LoadDiffAsync(FileRevisionRowViewModel? row)
     {
         _diffCts?.Cancel();
@@ -265,5 +289,160 @@ public sealed partial class FileHistoryViewModel : ObservableObject
             DiffRows = [];
             DiffMessage = $"{e.Result.CommandLine} failed: {e.Result.StandardError.Trim()}";
         }
+    }
+
+    // ─── Blame ────────────────────────────────────────────────────────────
+
+    /// <summary>Show who last changed each line (at the selected revision) instead of that revision's diff.</summary>
+    public bool ShowBlame
+    {
+        get => _showBlame;
+        set
+        {
+            if (!SetProperty(ref _showBlame, value))
+                return;
+            OnPropertyChanged(nameof(ShowDiff));
+            OnPropertyChanged(nameof(HasVisibleDiffMessage));
+            if (value)
+                _ = LoadBlameAsync(_selected);
+        }
+    }
+
+    public bool ShowDiff => !_showBlame;
+
+    public bool HasVisibleDiffMessage => !_showBlame && HasDiffMessage;
+
+    public IReadOnlyList<BlameRowViewModel> BlameRows
+    {
+        get => _blameRows;
+        private set => SetProperty(ref _blameRows, value);
+    }
+
+    public string BlameMessage
+    {
+        get => _blameMessage;
+        private set
+        {
+            if (SetProperty(ref _blameMessage, value))
+                OnPropertyChanged(nameof(HasBlameMessage));
+        }
+    }
+
+    public bool HasBlameMessage => _blameMessage.Length > 0;
+
+    private async Task LoadBlameAsync(FileRevisionRowViewModel? row)
+    {
+        _blameCts?.Cancel();
+        if (row is null || _blame is not { } blame)
+        {
+            BlameRows = [];
+            BlameMessage = "";
+            return;
+        }
+        if (row.Revision.Kind == ChangeKind.Deleted)
+        {
+            BlameRows = [];
+            BlameMessage = "The file was deleted in this commit, so there are no lines to blame. Pick an earlier one.";
+            return;
+        }
+        var cts = _blameCts = new CancellationTokenSource();
+        BlameMessage = "Reading blame…";
+        try
+        {
+            var revision = row.Revision;
+            var lines = await Task.Run(() => blame.BlameAsync(revision.Path, revision.Hash, cts.Token), cts.Token);
+            var language = SyntaxHighlighter.FromPath(revision.Path);
+            var rows = await Task.Run(() => BlameRowViewModel.Build(lines, language, DateTimeOffset.Now), cts.Token);
+            if (cts.IsCancellationRequested)
+                return;
+            BlameRows = rows;
+            BlameMessage = rows.Count == 0 ? "The file is empty in this commit." : "";
+        }
+        catch (OperationCanceledException) { }
+        catch (GitException e)
+        {
+            BlameRows = [];
+            BlameMessage = $"{e.Result.CommandLine} failed: {e.Result.StandardError.Trim()}";
+        }
+    }
+}
+
+/// <summary>
+/// One blamed line. The commit (hash, author, age) is shown on the first line of each run of lines
+/// from the same commit; a bar on the left gets stronger the more recent the change.
+/// </summary>
+public sealed class BlameRowViewModel
+{
+    private BlameRowViewModel(BlameLine line, CodeLine code, bool isBlockStart, double recency, DateTimeOffset now)
+    {
+        Line = line;
+        Code = code;
+        Number = line.Number.ToString();
+        IsBlockStart = isBlockStart;
+        Hash = line.Commit;
+        CommitText = isBlockStart
+            ? line.IsUncommitted
+                ? "Not committed yet"
+                : $"{line.Commit[..7]}  {line.Author}"
+            : "";
+        AgeText = isBlockStart && !line.IsUncommitted ? RelativeTime.Format(line.When, now) : "";
+        Tooltip = line.IsUncommitted
+            ? "This line has changes that aren't committed."
+            : $"{line.Summary}\n{line.Author} · {line.When.ToLocalTime():f} · {line.Commit[..9]}";
+        BarColor = line.IsUncommitted ? Palette.Orange : Palette.WithAlpha(Palette.Violet, 0.15 + 0.75 * recency);
+        BlockEdge = isBlockStart ? new Microsoft.UI.Xaml.Thickness(0, 1, 0, 0) : new Microsoft.UI.Xaml.Thickness(0);
+    }
+
+    public BlameLine Line { get; }
+    public CodeLine Code { get; }
+    public string Number { get; }
+    public string Hash { get; }
+    public bool IsBlockStart { get; }
+    public string CommitText { get; }
+    public string AgeText { get; }
+    public string Tooltip { get; }
+    public Color BarColor { get; }
+    public Microsoft.UI.Xaml.Thickness BlockEdge { get; }
+    public bool CanShowCommit => !Line.IsUncommitted;
+
+    /// <summary>Same width on every row (from the longest line) so blame scrolls sideways as a block.</summary>
+    public double MinWidth { get; private set; }
+    public Microsoft.UI.Xaml.TextWrapping Wrapping { get; private set; }
+
+    public static IReadOnlyList<BlameRowViewModel> Build(
+        IReadOnlyList<BlameLine> lines,
+        SyntaxLanguage language,
+        DateTimeOffset now
+    )
+    {
+        // Recency is relative to this file: its oldest line is 0, its newest is 1.
+        var committed = lines.Where(l => !l.IsUncommitted).Select(l => l.When.ToUnixTimeSeconds()).ToList();
+        var (oldest, newest) = committed.Count > 0 ? (committed.Min(), committed.Max()) : (0L, 0L);
+        var span = Math.Max(1, newest - oldest);
+        var rows = new List<BlameRowViewModel>(lines.Count);
+        for (var i = 0; i < lines.Count; i++)
+        {
+            var line = lines[i];
+            var start = i == 0 || lines[i - 1].Commit != line.Commit;
+            var recency = (double)(line.When.ToUnixTimeSeconds() - oldest) / span;
+            rows.Add(
+                new BlameRowViewModel(
+                    line,
+                    CodeLine.Build(line.Text, language, [], Palette.Transparent),
+                    start,
+                    Math.Clamp(recency, 0, 1),
+                    now
+                )
+            );
+        }
+        var width = 3 + 230 + 48 + rows.Select(r => r.Code.Text.Length).DefaultIfEmpty().Max() * 7.6 + 24;
+        foreach (var row in rows)
+        {
+            row.MinWidth = Diff.DiffRowViewModel.WrapLines ? 0 : width;
+            row.Wrapping = Diff.DiffRowViewModel.WrapLines
+                ? Microsoft.UI.Xaml.TextWrapping.Wrap
+                : Microsoft.UI.Xaml.TextWrapping.NoWrap;
+        }
+        return rows;
     }
 }

@@ -275,6 +275,7 @@ public sealed partial class OperationsViewModel : ObservableObject
         fix switch
         {
             SuggestedFix.CommitOrStash when kind == "switch" => [new("Stash changes and switch", "stash-switch")],
+            SuggestedFix.CommitOrStash => [new("Stash my changes", "stash")],
             SuggestedFix.ForceDelete => [new("Delete anyway…", "force-delete", IsDestructive: true)],
             SuggestedFix.PullFirst when kind == "push" =>
             [
@@ -286,6 +287,7 @@ public sealed partial class OperationsViewModel : ObservableObject
             SuggestedFix.PublishBranch => [new("Publish branch", "publish")],
             SuggestedFix.SignIn => [new("Open Accounts", "accounts")],
             SuggestedFix.CheckConnection => [new("Try again", "retry")],
+            SuggestedFix.ResolveConflicts => [new("Resolve conflicts", "resolve")],
             _ => [],
         };
 }

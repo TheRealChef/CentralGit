@@ -140,6 +140,21 @@ internal sealed class FakeWorkingTree : IWorkingTreeSource
     public Task<GitResult> DiscardHunkAsync(FileDiff diff, int hunk, CancellationToken ct = default) =>
         Log("discard hunk");
 
+    public Task<GitResult> ApplyLinesToIndexAsync(
+        FileDiff diff,
+        int hunk,
+        IReadOnlySet<int> lines,
+        ChangeSide side,
+        CancellationToken ct = default
+    ) => Log($"apply lines {string.Join(",", lines.Order())}");
+
+    public Task<GitResult> DiscardLinesAsync(
+        FileDiff diff,
+        int hunk,
+        IReadOnlySet<int> lines,
+        CancellationToken ct = default
+    ) => Log($"discard lines {string.Join(",", lines.Order())}");
+
     public Task<GitResult> DiscardAsync(FileChange change, CancellationToken ct = default) => Log("discard");
 
     public Task<GitResult> CommitAsync(string message, bool amend, CancellationToken ct = default) =>

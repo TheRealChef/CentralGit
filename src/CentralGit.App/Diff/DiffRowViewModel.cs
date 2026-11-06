@@ -2,6 +2,7 @@ using System.Globalization;
 using CentralGit.App.Theming;
 using CentralGit.Domain.Diff;
 using CentralGit.Domain.Text;
+using Microsoft.UI.Xaml;
 using Windows.UI;
 
 namespace CentralGit.App.Diff;
@@ -35,6 +36,9 @@ public sealed class DiffRowViewModel
     public Color SignColor { get; private init; } = Palette.TextMuted;
 
     /// <summary>Hunk headers only: which hunk, and what the Changes page offers for it.</summary>
+    /// <summary>The added or deleted lines this row shows (none for context), for staging single lines.</summary>
+    public IReadOnlyList<DiffLine> ChangedLines { get; private init; } = [];
+
     public int HunkIndex { get; private init; } = -1;
     public string HunkRange { get; private init; } = "";
     public string HunkSection { get; private init; } = "";
@@ -47,8 +51,9 @@ public sealed class DiffRowViewModel
         bool split,
         SyntaxLanguage language,
         HunkActions actions = HunkActions.None
-    ) =>
-        rows.Select(r =>
+    )
+    {
+        var built = rows.Select(r =>
                 r.Kind == DiffRowKind.Lines
                     ? split
                         ? SplitRow(r, language)
@@ -72,6 +77,35 @@ public sealed class DiffRowViewModel
             )
             .ToList();
 
+        // One width for every row, from the longest line, so the list scrolls sideways as a block and
+        // doesn't change width as rows are realized while scrolling down.
+        var longest = built
+            .Select(r => Math.Max(r.Left?.Text.Length ?? 0, r.Right?.Text.Length ?? 0))
+            .DefaultIfEmpty()
+            .Max();
+        var code = longest * CharWidth + CodePadding;
+        var width = split ? 2 * (SplitGutter + code) + 1 : UnifiedGutter + code;
+        foreach (var row in built)
+        {
+            row.MinWidth = WrapLines ? 0 : width;
+            row.Wrapping = WrapLines ? TextWrapping.Wrap : TextWrapping.NoWrap;
+        }
+        return built;
+    }
+
+    private const double CharWidth = 7.6; // Cascadia Mono at 12.5 px advances 0.6 em; a little slack for Consolas
+    private const double CodePadding = 24;
+    private const double SplitGutter = 52;
+    private const double UnifiedGutter = 108;
+
+    /// <summary>Settings: wrap long lines to the pane, or keep them whole and scroll sideways.</summary>
+    public static bool WrapLines { get; set; } = true;
+
+    public TextWrapping Wrapping { get; private set; } = TextWrapping.Wrap;
+
+    /// <summary>Width the code needs; the diff list scrolls sideways when it is wider than the pane.</summary>
+    public double MinWidth { get; private set; }
+
     private static DiffRowViewModel SplitRow(DiffRow row, SyntaxLanguage language)
     {
         var (lCode, lBack, lGutter) = Side(row.Left, language);
@@ -86,6 +120,12 @@ public sealed class DiffRowViewModel
             RightBackground = rBack,
             LeftGutter = lGutter,
             RightGutter = rGutter,
+            ChangedLines = new[] { row.Left?.Line, row.Right?.Line }
+                .OfType<DiffLine>()
+                .Where(l => l.Kind != DiffLineKind.Context)
+                .Distinct(ReferenceEqualityComparer.Instance)
+                .Cast<DiffLine>()
+                .ToList(),
         };
     }
 
@@ -100,6 +140,7 @@ public sealed class DiffRowViewModel
             Left = code,
             LeftBackground = back,
             LeftGutter = gutter,
+            ChangedLines = cell.Line.Kind == DiffLineKind.Context ? [] : [cell.Line],
             Sign = cell.Line.Kind switch
             {
                 DiffLineKind.Added => "+",

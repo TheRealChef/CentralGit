@@ -15,6 +15,9 @@ public interface ISyncService
 {
     IPreparedOperation Fetch();
 
+    /// <summary>Configured remotes (origin, upstream…).</summary>
+    Task<IReadOnlyList<string>> GetRemotesAsync(CancellationToken ct = default);
+
     /// <summary>
     /// An explicit <paramref name="mode"/>, else the user's own pull configuration, else fast-forward only:
     /// it can never create a merge or rewrite anything. If the branches diverged, the failure says so.
@@ -31,6 +34,9 @@ public interface ISyncService
 public sealed class SyncService(IBranchSource repository, IOperationSource operations) : ISyncService
 {
     public IPreparedOperation Fetch() => operations.Prepare(new FetchAll());
+
+    public Task<IReadOnlyList<string>> GetRemotesAsync(CancellationToken ct = default) =>
+        repository.GetRemotesAsync(ct);
 
     public async Task<IPreparedOperation> PreparePullAsync(PullMode? mode, CancellationToken ct = default)
     {

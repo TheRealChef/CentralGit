@@ -105,6 +105,7 @@ public sealed partial class ChangesViewModel : ObservableObject
     private string? _signature; // null until the first status, so a clean first status still fills the header
     private CancellationTokenSource? _diffCts;
     private FileDiff? _diff;
+    private IReadOnlyList<DiffLine> _selectedLines = [];
     private WorkingFileViewModel? _selected;
     private IReadOnlyList<DiffRowViewModel> _diffRows = [];
     private string _diffMessage = "";
@@ -228,6 +229,15 @@ public sealed partial class ChangesViewModel : ObservableObject
             ? string.Join(" / ", f.Change.Path.Split('/')[..^1]) + " / "
             : "";
     public bool CanDiscardFile => _selected is { IsStaged: false, Change.IsConflicted: false };
+
+    /// <summary>A conflicted file is selected: offer taking one side whole.</summary>
+    public bool IsConflictSelected => _selected?.Change.IsConflicted == true;
+
+    public string? SelectedPath => _selected?.Path;
+    public bool HasSelectedFile =>
+        _selected?.Change is { } c
+        && c.Unstaged is not ChangeKind.Deleted
+        && !(c.Staged is ChangeKind.Deleted && !c.IsUnstaged);
     public string ToggleFileLabel => _selected is { IsStaged: true } ? "Unstage file" : "Stage file";
 
     /// <summary>True while a refresh replaces the rows of the same file (the view keeps its scroll position).</summary>
@@ -262,6 +272,9 @@ public sealed partial class ChangesViewModel : ObservableObject
             _ = ShowDiffAsync(keepScroll: true, CancellationToken.None);
         }
     }
+
+    /// <summary>Rebuilds the diff rows after a layout setting changed (line wrapping).</summary>
+    public void Relayout() => _ = ShowDiffAsync(keepScroll: true, CancellationToken.None);
 
     public bool IsUnified
     {
@@ -587,6 +600,7 @@ public sealed partial class ChangesViewModel : ObservableObject
                         : "No text changes (mode or whitespace only)."
                 )
             : "";
+        SelectDiffRows([]);
         KeepScroll = keepScroll;
         DiffRows = rows;
         KeepScroll = false;
@@ -630,6 +644,106 @@ public sealed partial class ChangesViewModel : ObservableObject
         )
             return;
         await RunAsync("Discard failed", t => t.DiscardHunkAsync(diff, hunk));
+    }
+
+    // ─── Single lines ─────────────────────────────────────────────────────
+
+    /// <summary>The view reports which diff rows are selected; their added/deleted lines can be staged on their own.</summary>
+    public void SelectDiffRows(IEnumerable<DiffRowViewModel> rows)
+    {
+        _selectedLines = rows.SelectMany(r => r.ChangedLines)
+            .Distinct(ReferenceEqualityComparer.Instance)
+            .Cast<DiffLine>()
+            .ToList();
+        OnPropertyChanged(nameof(HasLineSelection));
+        OnPropertyChanged(nameof(LineActionLabel));
+        OnPropertyChanged(nameof(CanDiscardLines));
+    }
+
+    // Untracked files have no index entry to patch, conflicted ones aren't diffs yet, binary ones have no lines.
+    private bool CanActOnLines =>
+        _selected is { } f
+        && !f.Change.IsConflicted
+        && f.Change.Staged != ChangeKind.Untracked
+        && _diff is { IsBinary: false };
+
+    public bool HasLineSelection => CanActOnLines && _selectedLines.Count > 0;
+
+    public string LineActionLabel =>
+        (_selected?.IsStaged == true ? "Unstage " : "Stage ")
+        + (_selectedLines.Count == 1 ? "1 line" : $"{_selectedLines.Count} lines");
+
+    public bool CanDiscardLines => HasLineSelection && _selected is { IsStaged: false };
+
+    /// <summary>Selected lines grouped by hunk: (hunk index, indexes into its Lines).</summary>
+    private List<(int Hunk, IReadOnlySet<int> Lines)> SelectedByHunk(FileDiff diff)
+    {
+        var wanted = new HashSet<DiffLine>(_selectedLines, ReferenceEqualityComparer.Instance);
+        var groups = new List<(int, IReadOnlySet<int>)>();
+        for (var h = 0; h < diff.Hunks.Count; h++)
+        {
+            var set = new HashSet<int>();
+            var lines = diff.Hunks[h].Lines;
+            for (var i = 0; i < lines.Count; i++)
+                if (wanted.Contains(lines[i]))
+                    set.Add(i);
+            if (set.Count > 0)
+                groups.Add((h, set));
+        }
+        // Last hunk first, so earlier ones keep their positions while the index changes.
+        groups.Reverse();
+        return groups;
+    }
+
+    public Task ApplySelectedLinesAsync()
+    {
+        if (!HasLineSelection || _diff is not { } diff || _selected is not { } file)
+            return Task.CompletedTask;
+        var groups = SelectedByHunk(diff);
+        return RunAsync(
+            file.IsStaged ? "Unstage lines failed" : "Stage lines failed",
+            async t =>
+            {
+                GitResult? last = null;
+                foreach (var (hunk, lines) in groups)
+                {
+                    last = await t.ApplyLinesToIndexAsync(diff, hunk, lines, file.Side);
+                    if (!last.Succeeded)
+                        return last;
+                }
+                return last!;
+            }
+        );
+    }
+
+    public async Task DiscardSelectedLinesAsync()
+    {
+        if (!CanDiscardLines || _diff is not { } diff || _selected is not { } file)
+            return;
+        var count = _selectedLines.Count;
+        if (
+            Confirm is null
+            || !await Confirm(
+                "Discard these lines?",
+                $"{(count == 1 ? "1 changed line" : $"{count} changed lines")} in {file.Path} go back to their staged version. This can't be undone."
+            )
+        )
+            return;
+        var groups = SelectedByHunk(diff);
+        await RunAsync(
+            "Discard lines failed",
+            async t =>
+            {
+                GitResult? last = null;
+                foreach (var (hunk, lines) in groups)
+                {
+                    last = await t.DiscardLinesAsync(diff, hunk, lines);
+                    if (!last.Succeeded)
+                        return last;
+                }
+                return last!;
+            }
+        );
     }
 
     public async Task DiscardSelectedAsync()
@@ -772,6 +886,8 @@ public sealed partial class ChangesViewModel : ObservableObject
         OnPropertyChanged(nameof(SideBackground));
         OnPropertyChanged(nameof(DiffBreadcrumb));
         OnPropertyChanged(nameof(CanDiscardFile));
+        OnPropertyChanged(nameof(HasSelectedFile));
+        OnPropertyChanged(nameof(IsConflictSelected));
         OnPropertyChanged(nameof(ToggleFileLabel));
     }
 

@@ -7,6 +7,7 @@ using CentralGit.Domain.Commits;
 using CentralGit.Domain.Diff;
 using CentralGit.Domain.Health;
 using CentralGit.Domain.Recovery;
+using CentralGit.Domain.Workflow;
 using CentralGit.Infrastructure.FileSystem;
 
 namespace CentralGit.Infrastructure.Git;
@@ -256,8 +257,91 @@ public sealed class GitRepository(string path, GitRunner? git = null) : IGitRepo
     public Task<GitResult> DiscardHunkAsync(FileDiff diff, int hunk, CancellationToken ct = default) =>
         Tree.DiscardHunkAsync(diff, hunk, ct);
 
+    public Task<GitResult> ApplyLinesToIndexAsync(
+        FileDiff diff,
+        int hunk,
+        IReadOnlySet<int> lines,
+        ChangeSide side,
+        CancellationToken ct = default
+    ) => Tree.ApplyLinesToIndexAsync(diff, hunk, lines, side, ct);
+
+    public Task<GitResult> DiscardLinesAsync(
+        FileDiff diff,
+        int hunk,
+        IReadOnlySet<int> lines,
+        CancellationToken ct = default
+    ) => Tree.DiscardLinesAsync(diff, hunk, lines, ct);
+
     public Task<GitResult> DiscardAsync(FileChange change, CancellationToken ct = default) =>
         Tree.DiscardAsync(change, ct);
+
+    // ─── Workflow: stopped operations, tags, stash, blame ─────────────────
+
+    public Task<InProgress> GetInProgressAsync(CancellationToken ct = default) =>
+        WorkflowReader.GetInProgressAsync(_git, Path, ct);
+
+    public Task<GitResult> ResolveConflictAsync(string path, ConflictSide side, CancellationToken ct = default) =>
+        WorkflowReader.ResolveConflictAsync(_git, Path, path, side, ct);
+
+    public Task<string?> ReadWorkingFileAsync(string path, CancellationToken ct = default) =>
+        WorkflowReader.ReadWorkingFileAsync(Path, path, ct);
+
+    public Task<GitResult> SaveResolvedFileAsync(string path, string text, CancellationToken ct = default) =>
+        WorkflowReader.SaveResolvedFileAsync(_git, Path, path, text, ct);
+
+    public Task<RebaseRange> GetRebaseRangeAsync(string commit, CancellationToken ct = default) =>
+        WorkflowReader.GetRebaseRangeAsync(_git, Path, commit, ct);
+
+    public Task<BisectState> GetBisectAsync(CancellationToken ct = default) =>
+        WorkflowReader.GetBisectAsync(_git, Path, ct);
+
+    public async Task<bool> RefreshCommitGraphAsync(TimeSpan maxAge, CancellationToken ct = default)
+    {
+        // A single file (git gc) or a split chain (git maintenance / our own writes): either counts.
+        var paths = await _git.RunCheckedAsync(
+                Path,
+                [
+                    "rev-parse",
+                    "--git-path",
+                    "objects/info/commit-graph",
+                    "--git-path",
+                    "objects/info/commit-graphs/commit-graph-chain",
+                ],
+                ct
+            )
+            .ConfigureAwait(false);
+        var newest = paths
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(p => System.IO.Path.Combine(Path, p))
+            .Where(File.Exists)
+            .Select(File.GetLastWriteTimeUtc)
+            .DefaultIfEmpty(DateTime.MinValue)
+            .Max();
+        if (DateTime.UtcNow - newest < maxAge)
+            return false;
+        var write = await _git.RunAsync(
+                Path,
+                ["commit-graph", "write", "--reachable", "--split", "--changed-paths", "--no-progress"],
+                ct
+            )
+            .ConfigureAwait(false);
+        return write.Succeeded;
+    }
+
+    public Task<IReadOnlyList<Tag>> GetTagsAsync(CancellationToken ct = default) =>
+        WorkflowReader.GetTagsAsync(_git, Path, ct);
+
+    public Task<bool> IsValidTagNameAsync(string name, CancellationToken ct = default) =>
+        WorkflowReader.IsValidTagNameAsync(_git, Path, name, ct);
+
+    public Task<IReadOnlyList<Stash>> GetStashesAsync(CancellationToken ct = default) =>
+        WorkflowReader.GetStashesAsync(_git, Path, ct);
+
+    public Task<IReadOnlyList<StashFile>> GetStashFilesAsync(Stash stash, CancellationToken ct = default) =>
+        WorkflowReader.GetStashFilesAsync(_git, Path, stash, ct);
+
+    public Task<IReadOnlyList<BlameLine>> BlameAsync(string path, string? revision, CancellationToken ct = default) =>
+        WorkflowReader.BlameAsync(_git, Path, path, revision, ct);
 
     public Task<GitResult> CommitAsync(string message, bool amend, CancellationToken ct = default) =>
         Tree.CommitAsync(message, amend, ct);

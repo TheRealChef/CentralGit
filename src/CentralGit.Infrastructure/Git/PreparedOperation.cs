@@ -1,6 +1,7 @@
 using CentralGit.Application.Git;
 using CentralGit.Application.Operations;
 using CentralGit.Domain.Operations;
+using CentralGit.Domain.Workflow;
 
 namespace CentralGit.Infrastructure.Git;
 
@@ -23,6 +24,24 @@ public static class OperationArguments
             DeleteBranches d => BranchOperations.DeleteMany(d.Names),
             DeleteRemoteBranches d => BranchOperations.DeleteRemote(d.Remote, d.ShortNames),
             StashBeforeSwitch s => BranchOperations.StashBeforeSwitch(s.Target),
+            CherryPick c => WorkflowOperations.CherryPick(c.Commit, c.IsMerge),
+            Revert r => WorkflowOperations.Revert(r.Commit, r.IsMerge),
+            Reset r => WorkflowOperations.Reset(r.Commit, r.Mode),
+            Merge m => WorkflowOperations.Merge(m.Branch),
+            Rebase r => WorkflowOperations.Rebase(r.Onto),
+            InteractiveRebase r => WorkflowOperations.InteractiveRebase(r.Base, r.Steps),
+            BisectStart => WorkflowOperations.BisectStart(),
+            BisectMarkCommit b => WorkflowOperations.BisectMark(b.Commit, b.Mark),
+            BisectReset => WorkflowOperations.BisectReset(),
+            ContinueInProgress c => WorkflowOperations.Continue(c.State),
+            AbortInProgress a => WorkflowOperations.Abort(a.State),
+            CreateTag t => WorkflowOperations.CreateTag(t.Name, t.Commit, t.Message),
+            DeleteTag t => WorkflowOperations.DeleteTag(t.Name),
+            PushTag t => WorkflowOperations.PushTag(t.Remote, t.Name),
+            DeleteRemoteTag t => WorkflowOperations.DeleteRemoteTag(t.Remote, t.Name),
+            StashSave s => WorkflowOperations.StashSave(s.Message, s.IncludeUntracked, s.Paths),
+            StashApply s => WorkflowOperations.StashApply(s.Name, s.Pop),
+            StashDrop s => WorkflowOperations.StashDrop(s.Name),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(operation),
                 operation,

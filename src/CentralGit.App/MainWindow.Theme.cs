@@ -47,6 +47,8 @@ public sealed partial class MainWindow
         UpdateHealthTabs();
         UpdateRecoveryTabs();
         UpdateCompareTabs();
+        UpdateFileHistoryTabs();
+        UpdateWrapButtons();
         UpdateSettingsNav();
         StatusLine.Foreground = ThemeService.ChromeBrush(
             ViewModel.StatusIsError ? "RedTextBrush" : "TextSecondaryBrush"

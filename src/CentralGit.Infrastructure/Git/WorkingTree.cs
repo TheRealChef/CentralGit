@@ -122,6 +122,37 @@ public sealed class WorkingTree(GitRunner git, string repositoryPath)
         return git.RunAsync(repositoryPath, args, ct, diff.PatchFor(hunk));
     }
 
+    /// <summary>Stages (or unstages) only the chosen lines of one hunk; see <see cref="FileDiff.PatchForLines"/>.</summary>
+    public Task<GitResult> ApplyLinesToIndexAsync(
+        FileDiff diff,
+        int hunk,
+        IReadOnlySet<int> lines,
+        ChangeSide side,
+        CancellationToken ct = default
+    )
+    {
+        var reverse = side == ChangeSide.Staged;
+        List<string> args = ["apply", "--cached", "--whitespace=nowarn", "--recount"];
+        if (reverse)
+            args.Add("--reverse");
+        args.Add("-");
+        return git.RunAsync(repositoryPath, args, ct, diff.PatchForLines(hunk, lines, reverse));
+    }
+
+    /// <summary>Throws away only the chosen unstaged lines of one hunk. Destructive: ask first.</summary>
+    public Task<GitResult> DiscardLinesAsync(
+        FileDiff diff,
+        int hunk,
+        IReadOnlySet<int> lines,
+        CancellationToken ct = default
+    ) =>
+        git.RunAsync(
+            repositoryPath,
+            ["apply", "--reverse", "--whitespace=nowarn", "--recount", "-"],
+            ct,
+            diff.PatchForLines(hunk, lines, reverse: true)
+        );
+
     /// <summary>Throws away one unstaged hunk from the working tree. Destructive: ask first.</summary>
     public Task<GitResult> DiscardHunkAsync(FileDiff diff, int hunk, CancellationToken ct = default) =>
         git.RunAsync(

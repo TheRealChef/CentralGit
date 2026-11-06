@@ -98,6 +98,11 @@ public sealed partial class MainWindow
                 a.Handled = true;
                 await ViewModel.LoadHealthAsync();
             }
+            else if (ViewModel.Page == AppPage.Stashes)
+            {
+                a.Handled = true;
+                await ViewModel.LoadStashesAsync();
+            }
         };
         Root.KeyboardAccelerators.Add(refresh);
 
@@ -166,6 +171,7 @@ public sealed partial class MainWindow
         Style(NavRecovery, NavRecoveryIcon, NavRecoveryText, active: page == AppPage.Recovery);
         Style(NavFileHistory, NavFileHistoryIcon, NavFileHistoryText, active: page == AppPage.FileHistory);
         Style(NavCompare, NavCompareIcon, NavCompareText, active: page == AppPage.Compare);
+        Style(NavStashes, NavStashesIcon, NavStashesText, active: page == AppPage.Stashes);
 
         static void Style(Button button, FontIcon icon, TextBlock text, bool active)
         {

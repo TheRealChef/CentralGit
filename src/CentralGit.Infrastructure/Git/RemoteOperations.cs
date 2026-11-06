@@ -60,7 +60,9 @@ public static partial class RemoteOperations
     public static OperationExplanation Explain(GitResult result)
     {
         var err = result.StandardError;
-        bool Has(string s) => err.Contains(s, StringComparison.OrdinalIgnoreCase);
+        // Conflicts and some refusals are reported on stdout (merge, stash apply), the rest on stderr.
+        var all = err + "\n" + result.StandardOutput;
+        bool Has(string s) => all.Contains(s, StringComparison.OrdinalIgnoreCase);
 
         if (Has("[rejected]") && (Has("fetch first") || Has("non-fast-forward")))
             return new(
@@ -109,6 +111,9 @@ public static partial class RemoteOperations
             Has("would be overwritten")
             || Has("Please commit your changes or stash them")
             || Has("cannot pull with rebase: You have unstaged changes")
+            || Has("cannot rebase: You have unstaged changes")
+            || Has("cannot rebase: Your index contains uncommitted changes")
+            || Has("Your local changes to the following files would be overwritten")
         )
             return new(
                 "Your uncommitted changes are in the way",
@@ -132,6 +137,18 @@ public static partial class RemoteOperations
                 "Stopped on conflicts",
                 "Some files changed on both sides. Resolve them, then continue — or abort to go back.",
                 SuggestedFix.ResolveConflicts
+            );
+        if (Has("previous cherry-pick is now empty") || Has("nothing to commit, working tree clean"))
+            return new(
+                "Nothing left to apply",
+                "This change is already on the branch, so there's nothing to commit. Abort to finish.",
+                SuggestedFix.None
+            );
+        if (Has("Not a valid object name") || Has("unknown revision") || Has("is not a valid"))
+            return new(
+                "Git doesn't know that name",
+                FirstErrorLine(err) ?? "The branch, tag or commit couldn't be found.",
+                SuggestedFix.None
             );
         if (
             Has("Could not resolve host")
